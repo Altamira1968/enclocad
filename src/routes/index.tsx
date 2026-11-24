@@ -1,3 +1,4 @@
+import { repairMesh } from "@/lib/meshRepair";
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
 import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
 import * as THREE from "three";
@@ -120,7 +121,7 @@ function Index() {
   const stlOf = (part: Part) => {
     const g = geo?.[part];
     if (!g) return null;
-    return (new STLExporter().parse(new THREE.Mesh(printReady(part, g)), { binary: true }) as DataView).buffer as ArrayBuffer;
+    return (new STLExporter().parse(new THREE.Mesh(repairMesh(printReady(part, g))), { binary: true }) as DataView).buffer as ArrayBuffer;
   };
   const save = (blob: Blob, name: string) => {
     const a = document.createElement("a");
