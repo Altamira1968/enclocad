@@ -164,6 +164,8 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
       const L = x1 - x0, cx = (x0 + x1) / 2;
       b = op(b, brush(knuckle(L), cx, H, z0), ADDITION);
       b = op(b, brush(box(L, HINGE_R * 2, HINGE_R + 0.5), cx, H - HINGE_R, z0 + (HINGE_R + 0.5) / 2), ADDITION);
+      // alt keskin kenar: mafsala teğet 45° pah (kapak dönerken takılmasın)
+      b = op(b, brush(box(L + 2, 4.2, 4.2), cx, H - 2 * HINGE_R, z0, Math.PI / 4), SUBTRACTION);
       b = op(b, brush(cyl(PIN_HOLE, L + 1), cx, H, z0, 0, Math.PI / 2), SUBTRACTION);
     }
     // çıtçıt kertiği (ön dış yüz)
