@@ -30,7 +30,8 @@ export type ScrewMode = "insert" | "tap";
 export type LidMode = "screw" | "hinge";
 export type DinMode = "none" | "integrated" | "clip";
 export type Face = "front" | "back" | "left" | "right";
-export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT" | "NONE";
+export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT" | "NONE"
+  | "USBB" | "BARREL" | "MICROUSB" | "MICROHDMI" | "AUDIO" | "USBA2";
 
 export interface Cutout {
   id: string;
@@ -40,6 +41,8 @@ export interface Cutout {
   u: number;
   /** dikey ofset (mm, duvar merkezinden) */
   v: number;
+  /** Ayarlıysa: kesim merkezi kart üst yüzeyinden bu kadar yukarıda (mm); ayak yüksekliği değişince kesim de kayar */
+  pcbZ?: number;
 }
 
 export interface EnclosureParams {
@@ -55,6 +58,11 @@ export interface EnclosureParams {
   pcbDepth: number;
   pcbInset: number;
   standoffHeight: number;
+  /** Kart merkezinin kutu merkezine göre kayması (mm) */
+  pcbOffsetX?: number;
+  pcbOffsetZ?: number;
+  /** Gerçek montaj delikleri (kart merkezine göre x,z mm); yoksa simetrik dikdörtgen */
+  pcbHoles?: [number, number][];
   din: DinMode;
   cutouts: Cutout[];
   /** Kapak üstü oyma yazı (boş = yok) */
@@ -112,6 +120,12 @@ export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"
   RJ45: { kind: "rect", w: 16, h: 13.8 },
   VENT: { kind: "vent", w: 30, h: 15 },
   NONE: { kind: "none", w: 0, h: 0 },
+  USBB: { kind: "rect", w: 12.8, h: 11.6 },
+  BARREL: { kind: "rect", w: 9.8, h: 11.6 },
+  MICROUSB: { kind: "rect", w: 8.6, h: 4.2 },
+  MICROHDMI: { kind: "rect", w: 7.8, h: 4.2 },
+  AUDIO: { kind: "circle", w: 6.8, h: 6.8 },
+  USBA2: { kind: "rect", w: 14, h: 16.6 },
 };
 
 export const LID_THICKNESS = (p: EnclosureParams) => p.wall;
@@ -168,7 +182,10 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
     const sx = p.pcbWidth / 2 - p.pcbInset;
     const sz = p.pcbDepth / 2 - p.pcbInset;
     const sh = p.standoffHeight;
-    for (const [x, z] of [[sx, sz], [-sx, sz], [sx, -sz], [-sx, -sz]] as const) {
+    const ox = p.pcbOffsetX ?? 0, oz = p.pcbOffsetZ ?? 0;
+    const holes = p.pcbHoles ?? [[sx, sz], [-sx, sz], [sx, -sz], [-sx, -sz]];
+    for (const [hx, hz] of holes) {
+      const x = hx + ox, z = hz + oz;
       b = op(b, brush(cyl(hole + 2.4, sh), x, t + sh / 2, z), ADDITION);
       b = op(b, brush(cyl(hole, sh + t), x, t + sh / 2 + 0.01 + t / 2, z), SUBTRACTION);
     }
@@ -201,7 +218,7 @@ function applyCutout(b: Brush, p: EnclosureParams, c: Cutout, H: number): Brush 
   const spec = CUTOUT_SPECS[c.type];
   if (spec.kind === "none") return b;
   const t = p.wall;
-  const cy = H / 2 + c.v;
+  const cy = (c.pcbZ !== undefined && p.pcbEnabled ? t + p.standoffHeight + 1.6 + c.pcbZ : H / 2) + c.v;
   const depth = t * 3;
   const onX = c.face === "left" || c.face === "right";
   const sign = c.face === "front" || c.face === "right" ? 1 : -1;

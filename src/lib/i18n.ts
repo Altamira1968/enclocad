@@ -14,6 +14,8 @@ const dict = {
   size: { tr: "Vida ölçüsü", en: "Screw size" },
   insert: { tr: "Pirinç ısı somunu", en: "Heat-set insert" },
   tap: { tr: "Plastik vidası (kılavuz)", en: "Self-tapping screw" },
+  kits: { tr: "Hazır çizim paketleri", en: "Ready-made board kits" },
+  kitHint: { tr: "Kartı seç: kutu, montaj delikleri ve tüm port delikleri tam yerinde açılır.", en: "Pick a board: case, mounting holes and every port opening are placed exactly." },
   pcb: { tr: "PCB montaj ayakları", en: "PCB standoffs" },
   preset: { tr: "Kart şablonu", en: "Board preset" },
   custom: { tr: "Özel", en: "Custom" },

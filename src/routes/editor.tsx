@@ -1,6 +1,7 @@
 import { repairMesh } from "@/lib/meshRepair";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import { TEMPLATES } from "@/lib/templates";
+import { KITS, kitParams } from "@/lib/kits";
 import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
@@ -73,7 +74,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT"];
+const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT", "USBB", "BARREL", "MICROUSB", "MICROHDMI", "AUDIO", "USBA2"];
 const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
@@ -208,6 +209,17 @@ function Index() {
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         <aside className="w-full overflow-y-auto border-r border-border bg-card md:w-80">
+          <Section title={L("kits")}>
+            <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
+            <div className="grid grid-cols-1 gap-2">
+              {KITS.map((k) => (
+                <button key={k.id} type="button" onClick={() => { setPreset("custom"); setP(kitParams(k)); }}
+                  className="rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                  ▣ {k.name}
+                </button>
+              ))}
+            </div>
+          </Section>
           <Section title={L("dims")}>
             <NumField label={L("width")} value={p.width} min={30} max={300} step={1} onChange={(v) => set("width", v)} />
             <NumField label={L("depth")} value={p.depth} min={30} max={300} step={1} onChange={(v) => set("depth", v)} />
@@ -254,13 +266,13 @@ function Index() {
                 <select value={preset} onChange={(e) => {
                   setPreset(e.target.value);
                   const pr = PCB_PRESETS.find((x) => x.id === e.target.value);
-                  if (pr) setP((s) => ({ ...s, pcbWidth: pr.w, pcbDepth: pr.d, pcbInset: pr.inset }));
+                  if (pr) setP((s) => { const { pcbHoles: _h, ...r } = s; return { ...r, pcbWidth: pr.w, pcbDepth: pr.d, pcbInset: pr.inset }; });
                 }} className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm">
                   <option value="custom">{L("preset")}: {L("custom")}</option>
                   {PCB_PRESETS.map((x) => <option key={x.id} value={x.id}>{x.name} ({x.w}×{x.d})</option>)}
                 </select>
-                <NumField label={L("pcbW")} value={p.pcbWidth} min={15} max={p.width - 10} onChange={(v) => { setPreset("custom"); set("pcbWidth", v); }} />
-                <NumField label={L("pcbD")} value={p.pcbDepth} min={15} max={p.depth - 10} onChange={(v) => { setPreset("custom"); set("pcbDepth", v); }} />
+                <NumField label={L("pcbW")} value={p.pcbWidth} min={15} max={p.width - 10} onChange={(v) => { setPreset("custom"); setP((s) => { const { pcbHoles: _h, ...r } = s; return { ...r, pcbWidth: v }; }); }} />
+                <NumField label={L("pcbD")} value={p.pcbDepth} min={15} max={p.depth - 10} onChange={(v) => { setPreset("custom"); setP((s) => { const { pcbHoles: _h, ...r } = s; return { ...r, pcbDepth: v }; }); }} />
                 <NumField label={L("inset")} value={p.pcbInset} min={2} max={8} onChange={(v) => set("pcbInset", v)} />
                 <NumField label={L("sh")} value={p.standoffHeight} min={2} max={20} onChange={(v) => set("standoffHeight", v)} />
               </>
