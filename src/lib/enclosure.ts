@@ -325,8 +325,21 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     // pahlar: dil ve kulakçığın dikey kenarları
     const c = 0.9;
     for (const sx of [-1, 1]) {
-      b = op(b, brush(box(c * 2, 40, c * 2), sx * SNAP_W / 2, 0, zt + SNAP_T / 2, 0, 0, Math.PI / 4), SUBTRACTION);
-      b = op(b, brush(box(c * 2, 40, c * 2), sx * SNAP_W / 2, 0, ez, 0, 0, Math.PI / 4), SUBTRACTION);
+      // dil dikey kenarı: yalnız kapak altında (köprüyü oymaz)
+      b = op(b, brush(box(c * 2, SNAP_DROP + 2, c * 2), sx * SNAP_W / 2, -(SNAP_DROP + 2) / 2 - 0.01, zt + SNAP_T / 2, 0, 0, Math.PI / 4), SUBTRACTION);
+    }
+    // kulakçık: köşeleri dairesel yuvarlatılmış dolu plaka (kapakla tek parça, delik yok)
+    {
+      const R = 2, w = SNAP_W, z0 = p.depth / 2 - 2, z1 = ez + TH / 2;
+      const sh = new THREE.Shape();
+      sh.moveTo(-w / 2, z0); sh.lineTo(w / 2, z0); sh.lineTo(w / 2, z1 - R);
+      sh.absarc(w / 2 - R, z1 - R, R, 0, Math.PI / 2, false);
+      sh.lineTo(-w / 2 + R, z1); sh.absarc(-w / 2 + R, z1 - R, R, Math.PI / 2, Math.PI, false);
+      sh.closePath();
+      const g = new THREE.ExtrudeGeometry(sh, { depth: TH, bevelEnabled: false, curveSegments: 12 });
+      g.rotateX(Math.PI / 2); g.translate(0, t, 0); // xz düzlemi, y: t-TH..t
+      b = op(b, brush(box(SNAP_W + 2, TH + 0.2, 20), 0, t - TH / 2, zt + 10), SUBTRACTION);
+      b = op(b, brush(g), ADDITION);
     }
     // dilin alt ucu: dış ve iç alt kenarlar 45° pah, alt köşeler pah
     const yb = -SNAP_DROP - 2;
