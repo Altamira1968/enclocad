@@ -240,8 +240,9 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     }
     // çıtçıt tırnağı: ön yüzden aşağı inen esnek dil + içe dönük kilit dudağı + açma kulakçığı
     const zt = p.depth / 2 + 0.3 + SNAP_T / 2;
+    b = op(b, brush(box(SNAP_W, t, 2.3 + SNAP_T), 0, t / 2, p.depth / 2 - 2 + (2.3 + SNAP_T) / 2), ADDITION); // bağlantı köprüsü
     b = op(b, brush(box(SNAP_W, SNAP_DROP + 2 + t, SNAP_T), 0, (t - SNAP_DROP - 2) / 2, zt), ADDITION);
-    b = op(b, brush(box(SNAP_W, SNAP_LIP_H, 1.1), 0, -SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2 - 0.25), ADDITION);
+    b = op(b, brush(box(SNAP_W, SNAP_LIP_H, 1.3), 0, -SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2 - 0.15), ADDITION);
     b = op(b, brush(box(SNAP_W, 1.6, 3), 0, t - 0.8, zt + 1.5), ADDITION);
     return b.geometry;
   }
