@@ -105,10 +105,10 @@ const POST_R = 4;
 const ev = new Evaluator();
 ev.useGroups = false;
 
-function brush(geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, rz = 0): Brush {
+function brush(geo: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, rz = 0, ry = 0): Brush {
   const b = new Brush(geo);
   b.position.set(x, y, z);
-  b.rotation.set(rx, 0, rz);
+  b.rotation.set(rx, ry, rz);
   b.updateMatrixWorld();
   return b;
 }
@@ -233,7 +233,7 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     const z0 = -p.depth / 2 - HINGE_R;
     for (const [x0, x1] of hingeSegments(p).lid) {
       const L = x1 - x0, cx = (x0 + x1) / 2;
-      let k = op(brush(knuckle(L), cx, 0, z0), brush(box(L, HINGE_R * 2, HINGE_R + 0.5), cx, Math.min(t, HINGE_R) / 2 + 0.01, z0 + (HINGE_R + 0.5) / 2), ADDITION);
+      let k = op(brush(knuckle(L), cx, 0, z0), brush(box(L, t, HINGE_R + 0.5), cx, t / 2, z0 + (HINGE_R + 0.5) / 2), ADDITION); // köprü y>=0: alt kademe yok
       k = op(k, brush(box(L + 2, 20, 20), cx, t + 10, z0), SUBTRACTION); // üst yüz düz kalsın
       b = op(b, k, ADDITION);
       b = op(b, brush(cyl(PIN_HOLE, L + 1), cx, 0, z0, 0, Math.PI / 2), SUBTRACTION);
@@ -243,7 +243,19 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     b = op(b, brush(box(SNAP_W, t, 2.3 + SNAP_T), 0, t / 2, p.depth / 2 - 2 + (2.3 + SNAP_T) / 2), ADDITION); // bağlantı köprüsü
     b = op(b, brush(box(SNAP_W, SNAP_DROP + 2 + t, SNAP_T), 0, (t - SNAP_DROP - 2) / 2, zt), ADDITION);
     b = op(b, brush(box(SNAP_W, SNAP_LIP_H, 1.3), 0, -SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2 - 0.15), ADDITION);
-    b = op(b, brush(box(SNAP_W, 1.6, 3), 0, t - 0.8, zt + 1.5), ADDITION);
+    // ergonomik açma kulakçığı: dışa/yukarı 30° eğimli, yuvarlak uçlu
+    const TL = 5, a = 0.5;
+    const tz = zt + (TL / 2) * Math.cos(a), ty = t - 0.8 + (TL / 2) * Math.sin(a);
+    b = op(b, brush(box(SNAP_W, 1.6, TL), 0, ty, tz, -a), ADDITION);
+    const ez = zt + TL * Math.cos(a), ey = t - 0.8 + TL * Math.sin(a);
+    const tip = cyl(1.6, SNAP_W); tip.rotateZ(Math.PI / 2);
+    b = op(b, brush(tip, 0, ey, ez), ADDITION);
+    // pahlar: dilin dış dikey kenarları ve kulakçık köşeleri
+    const c = 0.9;
+    for (const sx of [-1, 1]) {
+      b = op(b, brush(box(c * 2, 40, c * 2), sx * SNAP_W / 2, 0, zt + SNAP_T / 2, 0, 0, Math.PI / 4), SUBTRACTION);
+      b = op(b, brush(box(c * 2.4, 40, c * 2.4), sx * SNAP_W / 2, 0, ez + 0.8, 0, 0, Math.PI / 4), SUBTRACTION);
+    }
     return b.geometry;
   }
   const cl = clearanceDiameter(p.screwSize);
