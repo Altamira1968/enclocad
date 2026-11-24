@@ -143,6 +143,9 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
   const holeDepth = p.screwMode === "insert" ? 6 : 10;
   if (p.lidMode !== "hinge") for (const [x, z] of cornerPositions(p)) {
     b = op(b, brush(cyl(POST_R * 2, H - t), x, t + (H - t) / 2, z), ADDITION);
+    // iç köşe dolgusu: kule ile duvar köşesi arasındaki üçgen boşluğu kapatır
+    const f = POST_R - 0.3;
+    b = op(b, brush(box(f, H - t, f), x + Math.sign(x) * f / 2, t + (H - t) / 2, z + Math.sign(z) * f / 2), ADDITION);
     b = op(b, brush(cyl(hole, holeDepth), x, H - holeDepth / 2 + 0.01, z), SUBTRACTION);
   }
 
@@ -269,6 +272,8 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
   const cl = clearanceDiameter(p.screwSize);
   for (const [x, z] of cornerPositions(p)) {
     b = op(b, brush(cyl(POST_R * 2 + 0.6, 2.4), x, -1.1, z), SUBTRACTION);
+    const f = POST_R + 0.3;
+    b = op(b, brush(box(f, 2.4, f), x + Math.sign(x) * f / 2, -1.1, z + Math.sign(z) * f / 2), SUBTRACTION);
     b = op(b, brush(cyl(cl, t * 3), x, t / 2, z), SUBTRACTION);
     b = op(b, brush(cyl(cl * 1.9, 2), x, t, z), SUBTRACTION); // vida başı havşası
   }
