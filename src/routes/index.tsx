@@ -12,6 +12,7 @@ import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
 
 const Viewer = lazy(() => import("@/components/Viewer"));
+import PartSearch from "@/components/PartSearch";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -76,6 +77,7 @@ const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
   const [lang, setLang] = useState<Lang>("en");
+  const [searchOpen, setSearchOpen] = useState(false);
   const L = (k: Key) => tr(lang, k);
   const [p, setP] = useState<EnclosureParams>(DEFAULT_PARAMS);
   const [explode, setExplode] = useState(25);
@@ -157,6 +159,10 @@ function Index() {
           <p className="hidden text-sm text-muted-foreground md:block">{L("tagline")}</p>
         </div>
         <div className="flex items-center gap-3">
+          <button type="button" onClick={() => setSearchOpen(true)}
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
+            🔍 {L("psOpen")}
+          </button>
           <Seg value={lang} onChange={(v) => { setLang(v); localStorage.setItem("enclocad-lang", v); }}
             options={[{ v: "tr", label: "TR" }, { v: "en", label: "EN" }]} />
           <span className="hidden text-xs text-muted-foreground lg:inline">{L("stl")}:</span>
@@ -172,6 +178,7 @@ function Index() {
           </button>
         </div>
       </header>
+      {searchOpen && <PartSearch lang={lang} onClose={() => setSearchOpen(false)} />}
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         <aside className="w-full overflow-y-auto border-r border-border bg-card md:w-80">

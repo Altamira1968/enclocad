@@ -47,6 +47,16 @@ const dict = {
   lidStl: { tr: "Kapak.stl", en: "Lid.stl" },
   computing: { tr: "Hesaplanıyor…", en: "Computing…" },
   error: { tr: "Geometri oluşturulamadı, ölçüleri kontrol edin.", en: "Geometry failed, check dimensions." },
+  psOpen: { tr: "Yedek parça ara", en: "Find spare part" },
+  psTitle: { tr: "3D yedek parça arama", en: "3D spare part search" },
+  psPlaceholder: { tr: "Araç + parça adı veya OEM no (İngilizce daha iyi sonuç verir)", en: "Car + part name or OEM no." },
+  psSearch: { tr: "Ara", en: "Search" },
+  psSearching: { tr: "Aranıyor…", en: "Searching…" },
+  psHint: { tr: "Sonuçlar Printables.com açık arşivinden gelir; karta tıklayınca model sayfası açılır.", en: "Results come from the open Printables.com archive; click a card to open the model page." },
+  psEmpty: { tr: "Sonuç bulunamadı. Farklı kelimelerle deneyin.", en: "No results. Try different words." },
+  psError: { tr: "Arama şu an yapılamadı, biraz sonra tekrar deneyin.", en: "Search unavailable, try again later." },
+  psCount: { tr: "sonuç", en: "results" },
+  psClose: { tr: "Kapat", en: "Close" },
 } as const;
 export type Key = keyof typeof dict;
 export const t = (lang: Lang, k: Key) => dict[k][lang];
