@@ -82,13 +82,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "EncloCAD" },
-      { name: "description", content: "Parametrik elektronik kutu tasarımcısı" },
-      { name: "author", content: "Lovable" },
+      { name: "description", content: "Parametric electronics enclosure designer" },
       { property: "og:title", content: "EncloCAD" },
-      { property: "og:description", content: "Parametrik elektronik kutu tasarımcısı" },
+      { property: "og:description", content: "Parametric electronics enclosure designer" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

@@ -17,10 +17,10 @@ import PartSearch from "@/components/PartSearch";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "EncloCAD — Parametrik Elektronik Kutu Tasarımcısı" },
-      { name: "description", content: "Elektronik projeleriniz için vidalı kapaklı, DIN rayı montajlı kutuları tarayıcıda tasarlayın ve STL olarak indirin." },
-      { property: "og:title", content: "EncloCAD — Parametrik Elektronik Kutu Tasarımcısı" },
-      { property: "og:description", content: "Ölçüleri girin, PG rakor ve konnektör kesimlerini ekleyin, 3D yazıcıya hazır STL dosyalarını indirin." },
+      { title: "EncloCAD — Parametric Electronics Enclosure Designer" },
+      { name: "description", content: "Design screw-lid or hinged enclosures with DIN rail mounting right in your browser, then download print-ready STL files." },
+      { property: "og:title", content: "EncloCAD — Parametric Electronics Enclosure Designer" },
+      { property: "og:description", content: "Enter your dimensions, add PG gland and connector cutouts, and download STL files ready for your 3D printer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
