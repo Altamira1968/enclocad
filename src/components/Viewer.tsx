@@ -13,6 +13,7 @@ interface Props {
   mode: ViewMode;
   ghost: boolean;
   markers?: Marker[];
+  labels?: boolean;
 }
 export interface Marker { id: string; part: "base" | "lid" | "clip"; pos: [number, number, number]; title: string; body: string }
 
@@ -20,6 +21,8 @@ export default function Viewer(props: Props) {
   const host = useRef<HTMLDivElement>(null);
   const markerEls = useRef<Record<string, HTMLDivElement | null>>({});
   const markersRef = useRef<Marker[]>([]);
+  const cardEls = useRef<Record<string, HTMLDivElement | null>>({});
+  const lineEls = useRef<Record<string, SVGLineElement | null>>({});
   markersRef.current = props.markers ?? [];
   const [active, setActive] = useState<string | null>(null);
   const state = useRef<{
@@ -69,13 +72,39 @@ export default function Viewer(props: Props) {
       controls.update();
       renderer.render(scene, camera);
       const v = new THREE.Vector3();
+      const W = el.clientWidth, Hh = el.clientHeight;
+      const pts: { id: string; x: number; y: number; vis: boolean }[] = [];
       for (const m of markersRef.current) {
         const node = markerEls.current[m.id];
         const mesh = m.part === "lid" ? lid : m.part === "clip" ? clip : base;
-        if (!node) continue;
         v.set(...m.pos); mesh.localToWorld(v); v.project(camera);
-        node.style.transform = `translate(${((v.x + 1) / 2) * el.clientWidth}px, ${((1 - v.y) / 2) * el.clientHeight}px)`;
-        node.style.display = mesh.visible && v.z < 1 ? "block" : "none";
+        const x = ((v.x + 1) / 2) * W, y = ((1 - v.y) / 2) * Hh, vis = mesh.visible && v.z < 1;
+        pts.push({ id: m.id, x, y, vis });
+        if (!node) continue;
+        node.style.transform = `translate(${x}px, ${y}px)`;
+        node.style.display = vis ? "block" : "none";
+      }
+      // etiketler: sol/sağ kenar sütunlarına dizilir, çizgi noktaya bağlanır
+      for (const side of ["l", "r"] as const) {
+        const list = pts.filter((p) => p.vis && (side === "l" ? p.x < W / 2 : p.x >= W / 2)).sort((a, b) => a.y - b.y);
+        const slot = (Hh - 40) / Math.max(list.length, 1);
+        list.forEach((p, i) => {
+          const card = cardEls.current[p.id], line = lineEls.current[p.id];
+          if (!card || !line) return;
+          const cy = 36 + slot * i + slot / 2;
+          const cw = card.offsetWidth, ch = card.offsetHeight;
+          const cx = side === "l" ? 8 : W - 8 - cw;
+          card.style.display = "block";
+          card.style.transform = `translate(${cx}px, ${cy - ch / 2}px)`;
+          line.style.display = "";
+          line.setAttribute("x1", String(side === "l" ? cx + cw : cx)); line.setAttribute("y1", String(cy));
+          line.setAttribute("x2", String(p.x)); line.setAttribute("y2", String(p.y));
+        });
+      }
+      for (const p of pts) if (!p.vis) {
+        const card = cardEls.current[p.id], line = lineEls.current[p.id];
+        if (card) card.style.display = "none";
+        if (line) line.style.display = "none";
       }
       raf = requestAnimationFrame(loop);
     };
@@ -122,28 +151,38 @@ export default function Viewer(props: Props) {
   return (
     <div className="relative h-full w-full overflow-hidden">
       <div ref={host} className="h-full w-full" />
-      {(props.markers ?? []).map((m, i) => {
-        const left = (i % 2) === 0;
-        return (
-          <div key={m.id} ref={(n) => { markerEls.current[m.id] = n; }} className="pointer-events-none absolute left-0 top-0" style={{ zIndex: active === m.id ? 20 : 10 }}>
-            <button type="button" aria-label={m.title}
-              onMouseEnter={() => setActive(m.id)} onMouseLeave={() => setActive(null)} onClick={() => setActive(active === m.id ? null : m.id)}
-              className="pointer-events-auto absolute -left-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-background font-mono text-[10px] font-bold text-primary shadow-lg">
-              <span className="absolute inset-0 animate-ping rounded-full bg-primary/40" />
-              <span className="relative">{i + 1}</span>
-            </button>
-            {active === m.id && (
-              <div className={`absolute top-0 flex items-center ${left ? "right-3 flex-row-reverse" : "left-3"}`}>
-                <span className="h-px w-10 bg-primary" />
-                <div className="w-56 rounded-lg border border-primary/60 bg-card p-3 shadow-xl">
-                  <p className="font-mono text-xs font-bold uppercase tracking-wider text-primary">{m.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{m.body}</p>
-                </div>
+      {props.labels && (
+        <svg className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 5 }}>
+          {(props.markers ?? []).map((m) => (
+            <line key={m.id} ref={(n) => { lineEls.current[m.id] = n; }} className="stroke-primary" strokeWidth={1} />
+          ))}
+        </svg>
+      )}
+      {(props.markers ?? []).map((m, i) => (
+        <div key={m.id} ref={(n) => { markerEls.current[m.id] = n; }} className="pointer-events-none absolute left-0 top-0" style={{ zIndex: active === m.id ? 20 : 10 }}>
+          <button type="button" aria-label={m.title}
+            onMouseEnter={() => setActive(m.id)} onMouseLeave={() => setActive(null)} onClick={() => setActive(active === m.id ? null : m.id)}
+            className="pointer-events-auto absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full border-2 border-primary bg-background shadow-lg">
+            <span className="sr-only">{i + 1}</span>
+          </button>
+          {!props.labels && active === m.id && (
+            <div className="absolute left-3 top-0 flex -translate-y-1/2 items-center">
+              <span className="h-px w-8 bg-primary" />
+              <div className="w-56 rounded-md border border-primary/60 bg-card p-3 shadow-xl">
+                <p className="font-mono text-xs font-bold uppercase text-primary">{m.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{m.body}</p>
               </div>
-            )}
-          </div>
-        );
-      })}
+            </div>
+          )}
+        </div>
+      ))}
+      {props.labels && (props.markers ?? []).map((m) => (
+        <div key={m.id} ref={(n) => { cardEls.current[m.id] = n; }}
+          className="pointer-events-none absolute left-0 top-0 w-32 rounded-md border border-primary/60 bg-card/95 p-1.5 shadow-xl" style={{ zIndex: 15 }}>
+          <p className="font-mono text-[10px] font-bold uppercase leading-tight tracking-wide text-primary">{m.title}</p>
+          <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">{m.body}</p>
+        </div>
+      ))}
     </div>
   );
 }

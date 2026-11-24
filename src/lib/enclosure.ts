@@ -224,7 +224,7 @@ function applyCutout(b: Brush, p: EnclosureParams, c: Cutout, H: number): Brush 
   let r = b;
   for (let i = 0; i < 6; i++) {
     const du = -spec.w / 2 + 2.5 + i * 5;
-    const g = onX ? box(depth, spec.h, 2.2) : box(2.2, spec.h, depth);
+    const g = onX ? box(depth, spec.h, 3) : box(3, spec.h, depth);
     r = op(r, place(g, du, 0, false), SUBTRACTION);
   }
   return r;

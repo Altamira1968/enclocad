@@ -11,9 +11,18 @@ const DEMO: EnclosureParams = {
   lidText: "ENCLOCAD",
   honeycomb: true,
   cutouts: [
+    { id: "c3", face: "right", type: "VENT", u: 0, v: 0 },
+  ],
+};
+const DEMO2: EnclosureParams = {
+  ...DEFAULT_PARAMS,
+  lidMode: "screw",
+  din: "clip",
+  lidText: "",
+  honeycomb: false,
+  cutouts: [
     { id: "c1", face: "front", type: "USBC", u: -25, v: 0 },
     { id: "c2", face: "front", type: "PG9", u: 22, v: 0 },
-    { id: "c3", face: "right", type: "VENT", u: 0, v: 0 },
   ],
 };
 import { t as tr, type Lang, type Key } from "@/lib/i18n";
@@ -52,10 +61,13 @@ function Landing() {
     }
   }, [navigate]);
 
-  const [geo, setGeo] = useState<{ base: THREE.BufferGeometry; lid: THREE.BufferGeometry; clip: THREE.BufferGeometry } | null>(null);
+  type G = { base: THREE.BufferGeometry; lid: THREE.BufferGeometry; clip: THREE.BufferGeometry | null };
+  const [geo, setGeo] = useState<G | null>(null);
+  const [geo2, setGeo2] = useState<G | null>(null);
   useEffect(() => {
     try {
-      setGeo({ base: buildBase(DEMO), lid: buildLid(DEMO), clip: buildClip(DEMO) });
+      setGeo({ base: buildBase(DEMO), lid: buildLid(DEMO), clip: null });
+      setGeo2({ base: buildBase(DEMO2), lid: buildLid(DEMO2), clip: buildClip(DEMO2) });
     } catch { /* önizleme olmadan da sayfa çalışır */ }
   }, []);
 
@@ -70,11 +82,15 @@ function Landing() {
     mk(2, "lid", [25, lt, 0]),
     mk(3, "lid", [-30, 0, -DEMO.depth / 2 - 3]),
     mk(4, "lid", [0, -2, DEMO.depth / 2 + 2]),
-    mk(5, "base", [-25, H / 2, DEMO.depth / 2]),
-    mk(6, "base", [22, H / 2, DEMO.depth / 2]),
     mk(7, "base", [DEMO.width / 2, H / 2, 0]),
-    mk(8, "base", [20, DEMO.wall + DEMO.standoffHeight, 15]),
-    mk(9, "clip", [0, 0, DEMO.depth / 2 - 10]),
+  ];
+  const ox = DEMO2.width / 2 - DEMO2.wall - 3.5;
+  const markers2: Marker[] = [
+    mk(10, "base", [-ox, H, -(DEMO2.depth / 2 - DEMO2.wall - 3.5)]),
+    mk(5, "base", [-25, H / 2, DEMO2.depth / 2]),
+    mk(6, "base", [22, H / 2, DEMO2.depth / 2]),
+    mk(8, "base", [20, DEMO2.wall + DEMO2.standoffHeight, 15]),
+    mk(9, "clip", [0, 0, DEMO2.depth / 2 - 10]),
   ];
 
   return (
@@ -112,17 +128,20 @@ function Landing() {
               {L("openEditor")} →
             </Link>
           </div>
-          <div>
-          <div className="relative h-96 overflow-hidden rounded-xl border border-border bg-viewport md:h-[30rem]">
-            <ClientOnly fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
-              <Suspense fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
-                <Viewer base={geo?.base ?? null} lid={geo?.lid ?? null} clip={geo?.clip ?? null}
-                  baseHeight={H} size={size} explode={22} mode="all" ghost={false}
-                  markers={geo ? markers : []} />
-              </Suspense>
-            </ClientOnly>
-          </div>
-          <p className="mt-2 text-center text-xs text-muted-foreground">{L("hotHint")}</p>
+          <div className="grid gap-3 sm:grid-cols-2 md:col-span-2">
+            {([[geo, markers, L("hinged")], [geo2, markers2, L("screwed")]] as const).map(([g, mks, title], i) => (
+              <div key={i} className="relative h-[26rem] overflow-hidden rounded-xl border border-border bg-viewport">
+                <p className="absolute left-3 top-2 z-30 font-mono text-xs font-bold uppercase tracking-widest text-primary">{title}</p>
+                <ClientOnly fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
+                  <Suspense fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
+                    <Viewer base={g?.base ?? null} lid={g?.lid ?? null} clip={g?.clip ?? null}
+                      baseHeight={H} size={size * 1.7} explode={22} mode="all" ghost={false} labels
+                      markers={g ? mks : []} />
+                  </Suspense>
+                </ClientOnly>
+              </div>
+            ))}
+          <p className="text-center text-xs text-muted-foreground sm:col-span-2">{L("hotHint")}</p>
           </div>
         </section>
 
