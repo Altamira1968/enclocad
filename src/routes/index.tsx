@@ -74,7 +74,7 @@ const CUT_TYPES: CutoutType[] = ["PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VE
 const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
-  const [lang, setLang] = useState<Lang>("tr");
+  const [lang, setLang] = useState<Lang>("en");
   const L = (k: Key) => tr(lang, k);
   const [p, setP] = useState<EnclosureParams>(DEFAULT_PARAMS);
   const [explode, setExplode] = useState(25);
@@ -106,23 +106,42 @@ function Index() {
   const updateCut = (id: string, patch: Partial<Cutout>) =>
     set("cutouts", p.cutouts.map((c) => (c.id === id ? { ...c, ...patch } : c)));
 
-  const download = async () => {
-    if (!geo) return;
-    const ex = new STLExporter();
-    const toStl = (g: THREE.BufferGeometry) => ex.parse(new THREE.Mesh(g), { binary: true }) as DataView;
-    const zip = new JSZip();
-    const n = lang === "tr" ? { b: "Govde", l: "Kapak", c: "DIN_Klipsi" } : { b: "Base", l: "Lid", c: "DIN_Clip" };
-    zip.file(`${n.b}.stl`, toStl(geo.base).buffer as ArrayBuffer);
-    // kapak baskı için ters çevrilir (düz yüz tablaya)
-    const lidFlip = geo.lid.clone().rotateX(Math.PI);
-    zip.file(`${n.l}.stl`, toStl(lidFlip).buffer as ArrayBuffer);
-    if (geo.clip) zip.file(`${n.c}.stl`, toStl(geo.clip.clone().rotateX(Math.PI)).buffer as ArrayBuffer);
-    const blob = await zip.generateAsync({ type: "blob" });
+  type Part = "base" | "lid" | "clip";
+  const names = lang === "tr" ? { base: "Govde", lid: "Kapak", clip: "DIN_Klipsi" } : { base: "Base", lid: "Lid", clip: "DIN_Clip" };
+  /** Baskıya hazır: Z yukarı, en geniş düz yüz tablada, tabla merkezinde */
+  const printReady = (part: Part, g: THREE.BufferGeometry) => {
+    const c = g.clone();
+    c.rotateX(part === "base" ? Math.PI / 2 : -Math.PI / 2);
+    c.computeBoundingBox();
+    const bb = c.boundingBox!;
+    c.translate(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + bb.max.y) / 2, -bb.min.z);
+    return c;
+  };
+  const stlOf = (part: Part) => {
+    const g = geo?.[part];
+    if (!g) return null;
+    return (new STLExporter().parse(new THREE.Mesh(printReady(part, g)), { binary: true }) as DataView).buffer as ArrayBuffer;
+  };
+  const save = (blob: Blob, name: string) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `EncloCAD_${p.width}x${p.depth}x${p.height}.zip`;
+    a.download = name;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const tag = `${p.width}x${p.depth}x${p.height}`;
+  const downloadPart = (part: Part) => {
+    const buf = stlOf(part);
+    if (buf) save(new Blob([buf], { type: "model/stl" }), `EncloCAD_${names[part]}_${tag}.stl`);
+  };
+  const download = async () => {
+    if (!geo) return;
+    const zip = new JSZip();
+    for (const part of ["base", "lid", "clip"] as Part[]) {
+      const buf = stlOf(part);
+      if (buf) zip.file(`${names[part]}.stl`, buf);
+    }
+    save(await zip.generateAsync({ type: "blob" }), `EncloCAD_${tag}.zip`);
   };
 
   const size = Math.max(p.width, p.depth, p.height);
@@ -139,6 +158,13 @@ function Index() {
         <div className="flex items-center gap-3">
           <Seg value={lang} onChange={(v) => { setLang(v); localStorage.setItem("enclocad-lang", v); }}
             options={[{ v: "tr", label: "TR" }, { v: "en", label: "EN" }]} />
+          <span className="hidden text-xs text-muted-foreground lg:inline">{L("stl")}:</span>
+          {(["base", "lid", ...(geo?.clip ? ["clip"] : [])] as Part[]).map((part) => (
+            <button key={part} type="button" onClick={() => downloadPart(part)} disabled={!geo}
+              className="rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50">
+              {L(part === "base" ? "dlBase" : part === "lid" ? "dlLid" : "dlClip")}
+            </button>
+          ))}
           <button type="button" onClick={download} disabled={!geo}
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50">
             {L("download")}

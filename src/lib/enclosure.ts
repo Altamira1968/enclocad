@@ -1,6 +1,26 @@
 import * as THREE from "three";
 import { Brush, Evaluator, ADDITION, SUBTRACTION } from "three-bvh-csg";
 
+/** Dış kenar pahı (mm) */
+export const chamferSize = (p: { wall: number }) => Math.min(1.6, p.wall * 0.6);
+
+/** Dikey kenarları ve alt (veya üst) kenarları pahlı blok; yMin..yMax arası, pahsız yüz "flat" tarafta */
+function chamferBlock(w: number, d: number, yMin: number, yMax: number, c: number, flat: "top" | "bottom"): Brush {
+  const hw = w / 2 - c, hd = d / 2 - c, k = c * 0.6;
+  const sh = new THREE.Shape();
+  sh.moveTo(-hw + k, -hd); sh.lineTo(hw - k, -hd); sh.lineTo(hw, -hd + k); sh.lineTo(hw, hd - k);
+  sh.lineTo(hw - k, hd); sh.lineTo(-hw + k, hd); sh.lineTo(-hw, hd - k); sh.lineTo(-hw, -hd + k); sh.closePath();
+  const h = yMax - yMin;
+  const g = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: true, bevelThickness: c, bevelSize: c, bevelSegments: 1 });
+  g.rotateX(-Math.PI / 2);
+  g.translate(0, flat === "top" ? yMin + c : yMin - c, 0);
+  // ExtrudeGeometry y yönü: 0..h, bevel -c..h+c sonrası kaydırıldı; düz tarafı kes
+  let b = brush(g);
+  const big = 4 * (w + d);
+  b = op(b, flat === "top" ? brush(box(big, big, big), 0, yMax + big / 2, 0) : brush(box(big, big, big), 0, yMin - big / 2, 0), SUBTRACTION);
+  return b;
+}
+
 export type ScrewMode = "insert" | "tap";
 export type DinMode = "none" | "integrated" | "clip";
 export type Face = "front" | "back" | "left" | "right";
@@ -112,7 +132,7 @@ function cornerPositions(p: EnclosureParams): [number, number][] {
 export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
   const t = p.wall;
   const H = p.height - LID_THICKNESS(p);
-  let b = brush(box(p.width, H, p.depth), 0, H / 2, 0);
+  let b = chamferBlock(p.width, p.depth, 0, H, chamferSize(p), "top");
   b = op(b, brush(box(p.width - 2 * t, H, p.depth - 2 * t), 0, H / 2 + t, 0), SUBTRACTION);
 
   const hole = holeDiameter(p.screwSize, p.screwMode);
@@ -188,7 +208,7 @@ function dinRails(length: number, baseY: number, withPlate: boolean): Brush {
 
 export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
   const t = LID_THICKNESS(p);
-  let b = brush(box(p.width, t, p.depth), 0, t / 2, 0);
+  let b = chamferBlock(p.width, p.depth, 0, t, Math.min(chamferSize(p), t * 0.8), "bottom");
   const lip = brush(box(p.width - 2 * t - 0.4, 2, p.depth - 2 * t - 0.4), 0, -1, 0);
   b = op(b, lip, ADDITION);
   b = op(b, brush(box(p.width - 4 * t, 2.2, p.depth - 4 * t), 0, -1.1, 0), SUBTRACTION);
