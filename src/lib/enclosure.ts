@@ -24,7 +24,7 @@ function chamferBlock(w: number, d: number, yMin: number, yMax: number, c: numbe
 export type ScrewMode = "insert" | "tap";
 export type DinMode = "none" | "integrated" | "clip";
 export type Face = "front" | "back" | "left" | "right";
-export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT";
+export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT" | "NONE";
 
 export interface Cutout {
   id: string;
@@ -85,7 +85,7 @@ export function clearanceDiameter(size: EnclosureParams["screwSize"]): number {
 }
 
 /** Kesim boyutları (mm): daire için [çap], dikdörtgen için [g, y] */
-export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"; w: number; h: number }> = {
+export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent" | "none"; w: number; h: number }> = {
   PG7: { kind: "circle", w: 12.5, h: 12.5 },
   PG9: { kind: "circle", w: 15.2, h: 15.2 },
   PG11: { kind: "circle", w: 18.6, h: 18.6 },
@@ -93,6 +93,7 @@ export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"
   USBC: { kind: "rect", w: 9.5, h: 3.6 },
   RJ45: { kind: "rect", w: 16, h: 13.8 },
   VENT: { kind: "vent", w: 30, h: 15 },
+  NONE: { kind: "none", w: 0, h: 0 },
 };
 
 export const LID_THICKNESS = (p: EnclosureParams) => p.wall;
@@ -163,6 +164,7 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
 
 function applyCutout(b: Brush, p: EnclosureParams, c: Cutout, H: number): Brush {
   const spec = CUTOUT_SPECS[c.type];
+  if (spec.kind === "none") return b;
   const t = p.wall;
   const cy = H / 2 + c.v;
   const depth = t * 3;

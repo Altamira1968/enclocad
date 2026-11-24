@@ -70,7 +70,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const CUT_TYPES: CutoutType[] = ["PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT"];
+const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT"];
 const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
@@ -222,7 +222,7 @@ function Index() {
                 <div className="flex gap-2">
                   <select value={c.type} onChange={(e) => updateCut(c.id, { type: e.target.value as CutoutType })}
                     className="flex-1 rounded border border-input bg-background px-1 py-1 text-xs">
-                    {CUT_TYPES.map((x) => <option key={x} value={x}>{x === "USBC" ? "USB-C" : x === "DC" ? "DC Jack" : x === "VENT" ? (lang === "tr" ? "Havalandırma" : "Vent") : x}</option>)}
+                    {CUT_TYPES.map((x) => <option key={x} value={x}>{x === "USBC" ? "USB-C" : x === "DC" ? "DC Jack" : x === "VENT" ? (lang === "tr" ? "Havalandırma" : "Vent") : x === "NONE" ? L("none") : x}</option>)}
                   </select>
                   <select value={c.face} onChange={(e) => updateCut(c.id, { face: e.target.value as Face })}
                     className="flex-1 rounded border border-input bg-background px-1 py-1 text-xs">
