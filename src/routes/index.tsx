@@ -181,6 +181,12 @@ function Index() {
             <NumField label={L("wall")} value={p.wall} min={1.6} max={4} step={0.2} onChange={(v) => set("wall", v)} />
           </Section>
 
+          <Section title={L("lidMode")}>
+            <Seg value={p.lidMode} onChange={(v) => set("lidMode", v)}
+              options={[{ v: "screw", label: L("lidScrew") }, { v: "hinge", label: L("lidHinge") }]} />
+            {p.lidMode === "hinge" && <p className="text-xs text-muted-foreground">{L("hingeHint")}</p>}
+          </Section>
+
           <Section title={L("screws")}>
             <Seg value={p.screwMode} onChange={(v) => set("screwMode", v)}
               options={[{ v: "insert", label: L("insert") }, { v: "tap", label: L("tap") }]} />

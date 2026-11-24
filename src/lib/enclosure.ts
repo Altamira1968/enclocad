@@ -22,6 +22,7 @@ function chamferBlock(w: number, d: number, yMin: number, yMax: number, c: numbe
 }
 
 export type ScrewMode = "insert" | "tap";
+export type LidMode = "screw" | "hinge";
 export type DinMode = "none" | "integrated" | "clip";
 export type Face = "front" | "back" | "left" | "right";
 export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT" | "NONE";
@@ -41,6 +42,7 @@ export interface EnclosureParams {
   depth: number;
   height: number;
   wall: number;
+  lidMode: LidMode;
   screwMode: ScrewMode;
   screwSize: "M2.5" | "M3";
   pcbEnabled: boolean;
@@ -57,6 +59,7 @@ export const DEFAULT_PARAMS: EnclosureParams = {
   depth: 70,
   height: 40,
   wall: 2.4,
+  lidMode: "screw",
   screwMode: "insert",
   screwSize: "M3",
   pcbEnabled: true,
@@ -138,7 +141,7 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
 
   const hole = holeDiameter(p.screwSize, p.screwMode);
   const holeDepth = p.screwMode === "insert" ? 6 : 10;
-  for (const [x, z] of cornerPositions(p)) {
+  if (p.lidMode !== "hinge") for (const [x, z] of cornerPositions(p)) {
     b = op(b, brush(cyl(POST_R * 2, H - t), x, t + (H - t) / 2, z), ADDITION);
     b = op(b, brush(cyl(hole, holeDepth), x, H - holeDepth / 2 + 0.01, z), SUBTRACTION);
   }
@@ -154,6 +157,18 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
   }
 
   for (const c of p.cutouts) b = applyCutout(b, p, c, H);
+
+  if (p.lidMode === "hinge") {
+    const z0 = -p.depth / 2 - HINGE_R;
+    for (const [x0, x1] of hingeSegments(p).base) {
+      const L = x1 - x0, cx = (x0 + x1) / 2;
+      b = op(b, brush(knuckle(L), cx, H, z0), ADDITION);
+      b = op(b, brush(box(L, HINGE_R * 2, HINGE_R + 0.5), cx, H - HINGE_R, z0 + (HINGE_R + 0.5) / 2), ADDITION);
+      b = op(b, brush(cyl(PIN_HOLE, L + 1), cx, H, z0, 0, Math.PI / 2), SUBTRACTION);
+    }
+    // çıtçıt kertiği (ön dış yüz)
+    b = op(b, brush(box(SNAP_W + 1, SNAP_LIP_H + 0.6, 2), 0, H - SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2), SUBTRACTION);
+  }
 
   if (p.din === "integrated") b = op(b, dinRails(p.width, 0, false), ADDITION);
   if (p.din === "clip") {
@@ -214,6 +229,22 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
   const lip = brush(box(p.width - 2 * t - 0.4, 2, p.depth - 2 * t - 0.4), 0, -1, 0);
   b = op(b, lip, ADDITION);
   b = op(b, brush(box(p.width - 4 * t, 2.2, p.depth - 4 * t), 0, -1.1, 0), SUBTRACTION);
+  if (p.lidMode === "hinge") {
+    const z0 = -p.depth / 2 - HINGE_R;
+    for (const [x0, x1] of hingeSegments(p).lid) {
+      const L = x1 - x0, cx = (x0 + x1) / 2;
+      let k = op(brush(knuckle(L), cx, 0, z0), brush(box(L, HINGE_R * 2, HINGE_R + 0.5), cx, Math.min(t, HINGE_R) / 2 + 0.01, z0 + (HINGE_R + 0.5) / 2), ADDITION);
+      k = op(k, brush(box(L + 2, 20, 20), cx, t + 10, z0), SUBTRACTION); // üst yüz düz kalsın
+      b = op(b, k, ADDITION);
+      b = op(b, brush(cyl(PIN_HOLE, L + 1), cx, 0, z0, 0, Math.PI / 2), SUBTRACTION);
+    }
+    // çıtçıt tırnağı: ön yüzden aşağı inen esnek dil + içe dönük kilit dudağı + açma kulakçığı
+    const zt = p.depth / 2 + 0.3 + SNAP_T / 2;
+    b = op(b, brush(box(SNAP_W, SNAP_DROP + 2 + t, SNAP_T), 0, (t - SNAP_DROP - 2) / 2, zt), ADDITION);
+    b = op(b, brush(box(SNAP_W, SNAP_LIP_H, 1.1), 0, -SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2 - 0.25), ADDITION);
+    b = op(b, brush(box(SNAP_W, 1.6, 3), 0, t - 0.8, zt + 1.5), ADDITION);
+    return b.geometry;
+  }
   const cl = clearanceDiameter(p.screwSize);
   for (const [x, z] of cornerPositions(p)) {
     b = op(b, brush(cyl(POST_R * 2 + 0.6, 2.4), x, -1.1, z), SUBTRACTION);
@@ -221,6 +252,22 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     b = op(b, brush(cyl(cl * 1.9, 2), x, t, z), SUBTRACTION); // vida başı havşası
   }
   return b.geometry;
+}
+
+export const HINGE_R = 3;
+export const PIN_HOLE = 2.0; // 1.75 mm filament pimi
+const HINGE_GAP = 0.4;
+const SNAP_W = 12, SNAP_T = 1.6, SNAP_DROP = 7, SNAP_LIP_H = 1.6;
+const knuckle = (L: number) => { const g = cyl(HINGE_R * 2, L); g.rotateZ(Math.PI / 2); return g; };
+
+/** Menteşe mafsal aralıkları (x): gövdede iki dış, kapakta orta mafsal */
+export function hingeSegments(p: EnclosureParams) {
+  const e = p.width / 2 - chamferSize(p) - 1;
+  const m = Math.max(6, p.width / 6);
+  return {
+    base: [[-e, -m - HINGE_GAP], [m + HINGE_GAP, e]] as [number, number][],
+    lid: [[-m, m]] as [number, number][],
+  };
 }
 
 export function buildClip(p: EnclosureParams): THREE.BufferGeometry {
