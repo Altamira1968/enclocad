@@ -16,8 +16,23 @@ interface KitSpec {
   lidMode: LidMode; screwMode: ScrewMode; lidText: string;
 }
 
-export function kitParams(k: KitSpec): EnclosureParams {
+/** Köşe vida kulesinin iç duvardan kapladığı alan + pay (mm) */
+const POST_CLEAR = 8.5;
+
+export function kitParams(k: KitSpec, lidOverride?: LidMode): EnclosureParams {
   const t = k.wall;
+  const lidMode = lidOverride ?? k.lidMode;
+  const m = { ...k.m };
+  if (lidMode === "screw") {
+    // her köşede en az bir yanda kule payı olsun; portsuz yan öncelikli genişletilir
+    const has = (e: Edge) => k.ports.some((p) => p.edge === e);
+    for (const zs of ["f", "b"] as const) for (const xs of ["l", "r"] as const) {
+      if (m[zs] >= POST_CLEAR || m[xs] >= POST_CLEAR) continue;
+      const xe: Edge = xs === "l" ? "left" : "right";
+      if (!has(xe)) m[xs] = POST_CLEAR; else m[zs] = POST_CLEAR;
+    }
+  }
+  k = { ...k, m };
   const width = Math.ceil(k.m.l + k.W + k.m.r + 2 * t);
   const depth = Math.ceil(k.m.b + k.D + k.m.f + 2 * t);
   const cx = -width / 2 + t + k.m.l + k.W / 2;
@@ -31,7 +46,7 @@ export function kitParams(k: KitSpec): EnclosureParams {
   const params: EnclosureParams = {
     ...DEFAULT_PARAMS,
     width, depth, height: k.height, wall: t,
-    lidMode: k.lidMode, screwMode: k.screwMode,
+    lidMode, screwMode: k.screwMode,
     pcbEnabled: true, pcbWidth: k.W, pcbDepth: k.D, pcbInset: k.inset,
     standoffHeight: k.standoff, pcbOffsetX: +cx.toFixed(2), pcbOffsetZ: +cz.toFixed(2),
     din: "none", cutouts, lidText: k.lidText,

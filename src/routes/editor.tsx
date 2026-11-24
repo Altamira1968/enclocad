@@ -9,6 +9,7 @@ import JSZip from "jszip";
 import {
   DEFAULT_PARAMS, PCB_PRESETS, LID_THICKNESS, buildBase, buildLid, buildClip,
   type EnclosureParams, type Cutout, type CutoutType, type Face,
+  type LidMode as LidModeT,
 } from "@/lib/enclosure";
 import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
@@ -86,6 +87,7 @@ function Index() {
   const [mode, setMode] = useState<ViewMode>("all");
   const [ghost, setGhost] = useState(false);
   const [preset, setPreset] = useState("custom");
+  const [kitId, setKitId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [hashReady, setHashReady] = useState(false);
   useEffect(() => {
@@ -213,7 +215,7 @@ function Index() {
             <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
             <div className="grid grid-cols-1 gap-2">
               {KITS.map((k) => (
-                <button key={k.id} type="button" onClick={() => { setPreset("custom"); setP(kitParams(k)); }}
+                <button key={k.id} type="button" onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
                   className="rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
                   ▣ {k.name}
                 </button>
@@ -228,7 +230,7 @@ function Index() {
           </Section>
 
           <Section title={L("lidMode")}>
-            <Seg value={p.lidMode} onChange={(v) => set("lidMode", v)}
+            <Seg value={p.lidMode} onChange={(v) => { const k = KITS.find((x) => x.id === kitId); if (k) setP(kitParams(k, v as LidModeT)); else set("lidMode", v); }}
               options={[{ v: "screw", label: L("lidScrew") }, { v: "hinge", label: L("lidHinge") }]} />
             {p.lidMode === "hinge" && <p className="text-xs text-muted-foreground">{L("hingeHint")}</p>}
           </Section>
