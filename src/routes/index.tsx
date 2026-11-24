@@ -180,10 +180,6 @@ function Index() {
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
             🔍 {L("psOpen")}
           </button>
-          <button type="button" onClick={share}
-            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
-            🔗 {copied ? L("copied") : L("share")}
-          </button>
           <Seg value={lang} onChange={(v) => { setLang(v); localStorage.setItem("enclocad-lang", v); }}
             options={[{ v: "tr", label: "TR" }, { v: "en", label: "EN" }]} />
           <span className="hidden text-xs text-muted-foreground lg:inline">{L("stl")}:</span>
@@ -196,6 +192,12 @@ function Index() {
           <button type="button" onClick={download} disabled={!geo}
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50">
             {L("download")}
+          </button>
+          <button type="button" onClick={share}
+            className={copied
+              ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400"
+              : "rounded-md border border-primary bg-primary/20 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"}>
+            {copied ? `✓ ${L("copied")}` : `🔗 ${L("share")}`}
           </button>
         </div>
       </header>
