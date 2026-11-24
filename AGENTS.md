@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- 3D enclosure geometry is built client-side in src/lib/enclosure.ts (three + three-bvh-csg) with no backend; keeps hosting cost near zero.
+- UI strings live in src/lib/i18n.ts (TR/EN dictionary); every new label needs both languages.
