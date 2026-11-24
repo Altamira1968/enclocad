@@ -1,5 +1,6 @@
 import { repairMesh } from "@/lib/meshRepair";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
+import { TEMPLATES } from "@/lib/templates";
 import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
@@ -89,12 +90,14 @@ function Index() {
   useEffect(() => {
     try {
       const h = window.location.hash.slice(1);
-      if (h.startsWith("d=")) setP({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) });
+      const tpl = new URLSearchParams(window.location.search).get("template");
+      if (tpl && TEMPLATES[tpl]) setP({ ...DEFAULT_PARAMS, ...TEMPLATES[tpl] } as EnclosureParams);
+      else if (h.startsWith("d=")) setP({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) });
     } catch { /* geçersiz link */ }
     setHashReady(true);
   }, []);
   useEffect(() => {
-    if (hashReady) history.replaceState(null, "", "#d=" + encodeURIComponent(JSON.stringify(p)));
+    if (hashReady) history.replaceState(null, "", window.location.pathname + "#d=" + encodeURIComponent(JSON.stringify(p)));
   }, [p, hashReady]);
   const share = async () => {
     try { await navigator.clipboard.writeText(window.location.href); } catch { /* yoksay */ }
