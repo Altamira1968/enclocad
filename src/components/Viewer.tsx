@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -12,10 +12,16 @@ interface Props {
   explode: number;
   mode: ViewMode;
   ghost: boolean;
+  markers?: Marker[];
 }
+export interface Marker { id: string; part: "base" | "lid" | "clip"; pos: [number, number, number]; title: string; body: string }
 
 export default function Viewer(props: Props) {
   const host = useRef<HTMLDivElement>(null);
+  const markerEls = useRef<Record<string, HTMLDivElement | null>>({});
+  const markersRef = useRef<Marker[]>([]);
+  markersRef.current = props.markers ?? [];
+  const [active, setActive] = useState<string | null>(null);
   const state = useRef<{
     base: THREE.Mesh; lid: THREE.Mesh; clip: THREE.Mesh;
     camera: THREE.PerspectiveCamera; controls: OrbitControls; lastSize: number;
@@ -62,6 +68,15 @@ export default function Viewer(props: Props) {
     const loop = () => {
       controls.update();
       renderer.render(scene, camera);
+      const v = new THREE.Vector3();
+      for (const m of markersRef.current) {
+        const node = markerEls.current[m.id];
+        const mesh = m.part === "lid" ? lid : m.part === "clip" ? clip : base;
+        if (!node) continue;
+        v.set(...m.pos); mesh.localToWorld(v); v.project(camera);
+        node.style.transform = `translate(${((v.x + 1) / 2) * el.clientWidth}px, ${((1 - v.y) / 2) * el.clientHeight}px)`;
+        node.style.display = mesh.visible && v.z < 1 ? "block" : "none";
+      }
       raf = requestAnimationFrame(loop);
     };
     loop();
@@ -104,5 +119,31 @@ export default function Viewer(props: Props) {
     }
   }, [props]);
 
-  return <div ref={host} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <div ref={host} className="h-full w-full" />
+      {(props.markers ?? []).map((m, i) => {
+        const left = (i % 2) === 0;
+        return (
+          <div key={m.id} ref={(n) => { markerEls.current[m.id] = n; }} className="pointer-events-none absolute left-0 top-0" style={{ zIndex: active === m.id ? 20 : 10 }}>
+            <button type="button" aria-label={m.title}
+              onMouseEnter={() => setActive(m.id)} onMouseLeave={() => setActive(null)} onClick={() => setActive(active === m.id ? null : m.id)}
+              className="pointer-events-auto absolute -left-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-background font-mono text-[10px] font-bold text-primary shadow-lg">
+              <span className="absolute inset-0 animate-ping rounded-full bg-primary/40" />
+              <span className="relative">{i + 1}</span>
+            </button>
+            {active === m.id && (
+              <div className={`absolute top-0 flex items-center ${left ? "right-3 flex-row-reverse" : "left-3"}`}>
+                <span className="h-px w-10 bg-primary" />
+                <div className="w-56 rounded-lg border border-primary/60 bg-card p-3 shadow-xl">
+                  <p className="font-mono text-xs font-bold uppercase tracking-wider text-primary">{m.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{m.body}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
