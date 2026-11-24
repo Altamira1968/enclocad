@@ -245,6 +245,8 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
     b = op(b, brush(box(SNAP_W, t, 2.3 + SNAP_T), 0, t / 2, p.depth / 2 - 2 + (2.3 + SNAP_T) / 2), ADDITION); // bağlantı köprüsü
     b = op(b, brush(box(SNAP_W, SNAP_DROP + 2 + t, SNAP_T), 0, (t - SNAP_DROP - 2) / 2, zt), ADDITION);
     b = op(b, brush(box(SNAP_W, SNAP_LIP_H, 1.3), 0, -SNAP_DROP + SNAP_LIP_H / 2, p.depth / 2 - 0.15), ADDITION);
+    // kilit dudağına 45° giriş pahı: kapanırken gövde kenarından kolay kaysın
+    b = op(b, brush(box(SNAP_W + 2, 1.5, 1.5), 0, -SNAP_DROP, p.depth / 2 - 0.8, Math.PI / 4), SUBTRACTION);
     // ergonomik açma kulakçığı: dışa/yukarı 30° eğimli, yuvarlak uçlu
     const TL = 5, a = 0.5;
     const tz = zt + (TL / 2) * Math.cos(a), ty = t - 0.8 + (TL / 2) * Math.sin(a);
