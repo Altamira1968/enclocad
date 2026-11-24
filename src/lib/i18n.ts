@@ -56,6 +56,14 @@ const dict = {
   psEmpty: { tr: "Sonuç bulunamadı. Farklı kelimelerle deneyin.", en: "No results. Try different words." },
   psError: { tr: "Arama şu an yapılamadı, biraz sonra tekrar deneyin.", en: "Search unavailable, try again later." },
   psCount: { tr: "sonuç", en: "results" },
+  lidDeco: { tr: "Kapak üstü", en: "Lid top" },
+  lidText: { tr: "Oyma yazı", en: "Engraved text" },
+  lidTextSize: { tr: "Yazı boyu", en: "Text size" },
+  lidTextHint: { tr: "Yazı 0.8 mm oyulur; kapak tablaya düz yatar, destek gerekmez.", en: "Text is engraved 0.8 mm; lid stays flat on the bed, no supports." },
+  honeycomb: { tr: "Petek havalandırma", en: "Honeycomb vent" },
+  hexSize: { tr: "Petek boyu", en: "Cell size" },
+  share: { tr: "Paylaş", en: "Share" },
+  copied: { tr: "Link kopyalandı!", en: "Link copied!" },
   psClose: { tr: "Kapat", en: "Close" },
 } as const;
 export type Key = keyof typeof dict;

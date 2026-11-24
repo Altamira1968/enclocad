@@ -84,6 +84,23 @@ function Index() {
   const [mode, setMode] = useState<ViewMode>("all");
   const [ghost, setGhost] = useState(false);
   const [preset, setPreset] = useState("custom");
+  const [copied, setCopied] = useState(false);
+  const [hashReady, setHashReady] = useState(false);
+  useEffect(() => {
+    try {
+      const h = window.location.hash.slice(1);
+      if (h.startsWith("d=")) setP({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) });
+    } catch { /* geçersiz link */ }
+    setHashReady(true);
+  }, []);
+  useEffect(() => {
+    if (hashReady) history.replaceState(null, "", "#d=" + encodeURIComponent(JSON.stringify(p)));
+  }, [p, hashReady]);
+  const share = async () => {
+    try { await navigator.clipboard.writeText(window.location.href); } catch { /* yoksay */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   const set = <K extends keyof EnclosureParams>(k: K, v: EnclosureParams[K]) => setP((s) => ({ ...s, [k]: v }));
 
   useEffect(() => {
@@ -163,6 +180,10 @@ function Index() {
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
             🔍 {L("psOpen")}
           </button>
+          <button type="button" onClick={share}
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
+            🔗 {copied ? L("copied") : L("share")}
+          </button>
           <Seg value={lang} onChange={(v) => { setLang(v); localStorage.setItem("enclocad-lang", v); }}
             options={[{ v: "tr", label: "TR" }, { v: "en", label: "EN" }]} />
           <span className="hidden text-xs text-muted-foreground lg:inline">{L("stl")}:</span>
@@ -193,6 +214,22 @@ function Index() {
             <Seg value={p.lidMode} onChange={(v) => set("lidMode", v)}
               options={[{ v: "screw", label: L("lidScrew") }, { v: "hinge", label: L("lidHinge") }]} />
             {p.lidMode === "hinge" && <p className="text-xs text-muted-foreground">{L("hingeHint")}</p>}
+          </Section>
+
+          <Section title={L("lidDeco")}>
+            <label className="block space-y-1 text-sm">
+              <span className="text-muted-foreground">{L("lidText")}</span>
+              <input type="text" value={p.lidText} maxLength={24} onChange={(e) => set("lidText", e.target.value)}
+                placeholder="ESP32 NODE"
+                className="w-full rounded-md border border-input bg-background px-2 py-1 font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+            </label>
+            {p.lidText.trim() && <NumField label={L("lidTextSize")} value={p.lidTextSize} min={4} max={30} step={1} onChange={(v) => set("lidTextSize", v)} />}
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={p.honeycomb} onChange={(e) => set("honeycomb", e.target.checked)} className="accent-primary" />
+              {L("honeycomb")}
+            </label>
+            {p.honeycomb && <NumField label={L("hexSize")} value={p.hexSize} min={3} max={12} step={0.5} onChange={(v) => set("hexSize", v)} />}
+            <p className="text-xs text-muted-foreground">{L("lidTextHint")}</p>
           </Section>
 
           <Section title={L("screws")}>

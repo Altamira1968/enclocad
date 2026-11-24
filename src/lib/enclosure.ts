@@ -1,5 +1,10 @@
 import * as THREE from "three";
 import { Brush, Evaluator, ADDITION, SUBTRACTION } from "three-bvh-csg";
+import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import fontJson from "@/assets/helvetiker_bold.typeface.json";
+
+const FONT = new FontLoader().parse(fontJson as never);
 
 /** Dış kenar pahı (mm) */
 export const chamferSize = (p: { wall: number }) => Math.min(1.6, p.wall * 0.6);
@@ -52,6 +57,12 @@ export interface EnclosureParams {
   standoffHeight: number;
   din: DinMode;
   cutouts: Cutout[];
+  /** Kapak üstü oyma yazı (boş = yok) */
+  lidText: string;
+  lidTextSize: number;
+  /** Kapakta petek havalandırma */
+  honeycomb: boolean;
+  hexSize: number;
 }
 
 export const DEFAULT_PARAMS: EnclosureParams = {
@@ -69,6 +80,10 @@ export const DEFAULT_PARAMS: EnclosureParams = {
   standoffHeight: 5,
   din: "none",
   cutouts: [{ id: "c1", face: "front", type: "PG9", u: 0, v: 0 }],
+  lidText: "",
+  lidTextSize: 8,
+  honeycomb: false,
+  hexSize: 5,
 };
 
 export const PCB_PRESETS = [
@@ -228,9 +243,59 @@ function dinRails(length: number, baseY: number, withPlate: boolean): Brush {
   return r;
 }
 
+/** Kapak üst yüzüne petek delikleri ve oyma yazı (tabla yüzü düz kalır, destek gerekmez) */
+function decorateLid(b: Brush, p: EnclosureParams): Brush {
+  const t = LID_THICKNESS(p);
+  const hasText = p.lidText.trim().length > 0;
+  if (p.honeycomb) {
+    const s = p.hexSize, rib = 1.2;
+    const r = s / 2 / Math.cos(Math.PI / 6);
+    const dx = s + rib, dz = (s + rib) * Math.cos(Math.PI / 6);
+    const aw = p.width - 4 * t - 2 * POST_R - 6;
+    const zMin = -(p.depth / 2 - 2 * t - POST_R - 3);
+    const zMax = hasText ? p.depth * 0.05 - 2 : -zMin;
+    // pencere aç, sonra delikli ızgara plakasını (earcut ile hızlı) kenar payıyla geri ekle
+    const zc = (zMin + zMax) / 2, ah = zMax - zMin, m = 1.5;
+    if (ah > 2 * r) {
+      const sh = new THREE.Shape();
+      const hw = aw / 2 + m, hh = ah / 2 + m;
+      sh.moveTo(-hw, -hh); sh.lineTo(hw, -hh); sh.lineTo(hw, hh); sh.lineTo(-hw, hh); sh.closePath();
+      for (let row = 0, z = -ah / 2 + r; z <= ah / 2 - r; row++, z += dz) {
+        const off = row % 2 ? dx / 2 : 0;
+        for (let x = -aw / 2 + r + off; x <= aw / 2 - r; x += dx) {
+          const hp = new THREE.Path();
+          for (let i = 0; i < 6; i++) { const an = Math.PI / 6 + (i * Math.PI) / 3; const px = x + r * Math.cos(an), py = z + r * Math.sin(an); i ? hp.lineTo(px, py) : hp.moveTo(px, py); }
+          hp.closePath();
+          sh.holes.push(hp);
+        }
+      }
+      const grid = new THREE.ExtrudeGeometry(sh, { depth: t, bevelEnabled: false });
+      grid.rotateX(Math.PI / 2); // y: 0 -> -t
+      grid.translate(0, t, zc);
+      b = op(b, brush(box(aw, t * 3, ah), 0, t / 2, zc), SUBTRACTION);
+      b = op(b, brush(grid), ADDITION);
+    }
+  }
+  if (hasText) {
+    const depth = Math.min(0.8, t * 0.4);
+    const g = new TextGeometry(p.lidText.trim().slice(0, 24), { font: FONT, size: p.lidTextSize, depth: depth + 1, curveSegments: 4, bevelEnabled: false });
+    g.computeBoundingBox();
+    const bb = g.boundingBox!;
+    g.translate(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + bb.max.y) / 2, 0);
+    const maxW = p.width - 4 * t - 2 * POST_R;
+    const k = Math.min(1, maxW / Math.max(1, bb.max.x - bb.min.x));
+    g.scale(k, k, 1);
+    g.rotateX(-Math.PI / 2);
+    const zc = p.honeycomb ? p.depth * 0.25 : 0;
+    b = op(b, brush(g, 0, t - depth, zc), SUBTRACTION);
+  }
+  return b;
+}
+
 export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
   const t = LID_THICKNESS(p);
   let b = chamferBlock(p.width, p.depth, 0, t, Math.min(chamferSize(p), t * 0.8), "bottom");
+  b = decorateLid(b, p);
   const lip = brush(box(p.width - 2 * t - 0.4, 2, p.depth - 2 * t - 0.4), 0, -1, 0);
   b = op(b, lip, ADDITION);
   b = op(b, brush(box(p.width - 4 * t, 2.2, p.depth - 4 * t), 0, -1.1, 0), SUBTRACTION);
