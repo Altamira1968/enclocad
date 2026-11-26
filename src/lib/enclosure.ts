@@ -461,14 +461,15 @@ const HINGE_GAP = 0.4;
 const SNAP_W = 12, SNAP_T = 1.6, SNAP_DROP = 7, SNAP_LIP_H = 1.6;
 const knuckle = (L: number) => { const g = cyl(HINGE_R * 2, L); g.rotateZ(Math.PI / 2); return g; };
 
-/** Menteşe mafsal aralıkları (x): gövdede iki dış, kapakta orta mafsal */
+/** Menteşe mafsal aralıkları (x): 5 eşit boğum; kapakta sol/orta/sağ (3), gövdede aradaki 2 */
 export function hingeSegments(p: EnclosureParams) {
   const e = p.width / 2 - chamferSize(p) - 1;
-  const m = Math.max(6, p.width / 6);
-  return {
-    base: [[-e, -m - HINGE_GAP], [m + HINGE_GAP, e]] as [number, number][],
-    lid: [[-m, m]] as [number, number][],
-  };
+  const seg = (2 * e - 4 * HINGE_GAP) / 5;
+  const s = Array.from({ length: 5 }, (_, i) => {
+    const x0 = -e + i * (seg + HINGE_GAP);
+    return [x0, x0 + seg] as [number, number];
+  });
+  return { lid: [s[0]!, s[2]!, s[4]!], base: [s[1]!, s[3]!] };
 }
 
 export function buildClip(p: EnclosureParams): THREE.BufferGeometry {
