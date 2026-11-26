@@ -76,7 +76,7 @@ const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
   const [lang, setLang] = useState<Lang>("en");
-  const [activeSection, setActiveSection] = useState("dims");
+  const [activeSection, setActiveSection] = useState("kits");
   const [gasketNotice, setGasketNotice] = useState(false);
   const [kitCat, setKitCat] = useState<KitCategory>("arduino");
   const [searchOpen, setSearchOpen] = useState(false);
