@@ -256,8 +256,12 @@ function Index() {
           <Section value="lidMode" title={L("lidMode")}>
             <Seg value={p.lidMode} onChange={(v) => {
               setGasketNotice(v === "hinge" && gasketEnabled(p));
-              const k = KITS.find((x) => x.id === kitId);
-              if (k) setP(normalizeGasket({ ...kitParams(k, v), gasket: p.gasket ?? "none" }));
+              const k = KITS.find((x) => x.id === kitId) ?? (p.pcbEnabled ? KITS.find((x) => x.W === p.pcbWidth && x.D === p.pcbDepth) : undefined);
+              if (k) {
+                const g = kitParams(k, v);
+                setP(normalizeGasket({ ...p, lidMode: v, width: g.width, depth: g.depth, pcbOffsetX: g.pcbOffsetX ?? 0, pcbOffsetZ: g.pcbOffsetZ ?? 0,
+                  cutouts: p.cutouts.map((c) => g.cutouts.find((n) => n.id === c.id) ?? c) }));
+              }
               else set("lidMode", v);
             }}
               options={[{ v: "screw", label: L("lidScrew") }, { v: "hinge", label: L("lidHinge") }]} />
