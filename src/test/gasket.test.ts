@@ -20,6 +20,11 @@ describe("TPU filament sealing", () => {
     expect(normalizeGasket({ ...params, lidMode: "hinge" }).gasket).toBe("none");
     expect(normalizeGasket(params).gasket).toBe("tpu175");
   });
+  it("disables gasket with open ports but keeps it for PG glands", () => {
+    expect(normalizeGasket({ ...params, cutouts: [{ id: "a", face: "back", type: "USBC", u: 0, v: 0 }] }).gasket).toBe("none");
+    expect(normalizeGasket({ ...params, honeycomb: true }).gasket).toBe("none");
+    expect(normalizeGasket({ ...params, cutouts: [{ id: "g", face: "back", type: "PG7", u: 0, v: 0 }] }).gasket).toBe("tpu175");
+  });
   it("old designs have no seal", () => {
     const { gasket: _g, ...old } = params;
     expect(gasketEnabled(old)).toBe(false);
@@ -56,8 +61,8 @@ describe("TPU filament sealing", () => {
     }
     base.dispose();
   });
-  it("generates sealing grooves for every screw-lid board kit and a small box", () => {
-    const designs = [...KITS.map((k) => ({ ...kitParams(k, "screw"), gasket: "tpu175" as const })), { ...params, width: 30, depth: 30, wall: 4 }];
+  it("generates sealing grooves for port-free kit sizes and a small box", () => {
+    const designs = [...KITS.map((k) => ({ ...kitParams(k, "screw"), cutouts: [], gasket: "tpu175" as const })), { ...params, width: 30, depth: 30, wall: 4 }];
     for (const p of designs) {
       const base = buildBase(p);
       expect(topAt(base, 0, p.depth / 2 - gasketInset(p))).toBeCloseTo(p.height - LID_THICKNESS(p) - 1.3, 3);

@@ -10,7 +10,7 @@ import JSZip from "jszip";
 import {
   DEFAULT_PARAMS, PCB_PRESETS, LID_THICKNESS, buildBase, buildLid, buildClip,
   type EnclosureParams, type Cutout, type CutoutType, type Face,
-  gasketEnabled, gasketRim, normalizeGasket,
+  gasketEnabled, gasketRim, gasketAllowed, hasOpenCutouts, normalizeGasket,
 } from "@/lib/enclosure";
 import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
@@ -278,13 +278,13 @@ function Index() {
 
           <Section value="gasket" title={L("gasket")}>
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={gasketEnabled(p)} disabled={p.lidMode === "hinge"} onChange={(e) => { set("gasket", e.target.checked ? "tpu175" : "none"); setGasketNotice(false); }} className="accent-primary disabled:opacity-40" aria-describedby="gasket-hint" />
-              <span className={p.lidMode === "hinge" ? "text-muted-foreground" : "text-foreground"}>{L("gasketTpu")}</span>
+              <input type="checkbox" checked={gasketEnabled(p)} disabled={!gasketAllowed(p)} onChange={(e) => { set("gasket", e.target.checked ? "tpu175" : "none"); setGasketNotice(false); }} className="accent-primary disabled:opacity-40" aria-describedby="gasket-hint" />
+              <span className={!gasketAllowed(p) ? "text-muted-foreground" : "text-foreground"}>{L("gasketTpu")}</span>
             </label>
-            <p id="gasket-hint" className="flex items-start gap-2 text-xs text-primary"><Info className="size-4 shrink-0" />{L(p.lidMode === "hinge" ? "gasketRequiresScrew" : "gasketHint")}</p>
+            <p id="gasket-hint" className="flex items-start gap-2 text-xs text-primary"><Info className="size-4 shrink-0" />{L(p.lidMode === "hinge" ? "gasketRequiresScrew" : hasOpenCutouts(p) ? "gasketOpenBlocked" : "gasketHint")}</p>
             {gasketEnabled(p) && <>
               <p className="text-xs text-muted-foreground">{L("gasketRimHint")} {gasketRim(p).toFixed(1)} mm.</p>
-              <p role="status" className="text-xs text-primary">{L(p.honeycomb || p.cutouts.some((c) => c.type !== "NONE") ? "gasketOpenings" : "gasketTest")}</p>
+              <p role="status" className="text-xs text-primary">{L(p.cutouts.some((c) => c.type !== "NONE") ? "gasketOpenings" : "gasketTest")}</p>
             </>}
           </Section>
 

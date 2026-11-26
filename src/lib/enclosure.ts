@@ -130,11 +130,14 @@ export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"
   USBA2: { kind: "rect", w: 14, h: 16.6 },
 };
 
-export const gasketEnabled = (p: EnclosureParams) => p.gasket === "tpu175" && p.lidMode === "screw";
+/** Conta yalnızca tam kapalı veya sadece PG rakorlu kutularda anlamlıdır. */
+export const hasOpenCutouts = (p: EnclosureParams) => !!p.honeycomb || p.cutouts.some((c) => c.type !== "NONE" && !c.type.startsWith("PG"));
+export const gasketAllowed = (p: EnclosureParams) => p.lidMode === "screw" && !hasOpenCutouts(p);
+export const gasketEnabled = (p: EnclosureParams) => p.gasket === "tpu175" && gasketAllowed(p);
 export const TPU_GASKET = { diameter: 1.75, width: 2.1, depth: 1.3, edge: 1, radius: 6 } as const;
 export const gasketInset = (p: EnclosureParams) => p.wall + 7;
 export const gasketRim = (p: EnclosureParams) => gasketInset(p) + TPU_GASKET.width / 2 + TPU_GASKET.edge;
-export const normalizeGasket = (p: EnclosureParams): EnclosureParams => p.lidMode === "hinge" && p.gasket !== "none" ? { ...p, gasket: "none" } : p;
+export const normalizeGasket = (p: EnclosureParams): EnclosureParams => !gasketAllowed(p) && p.gasket !== "none" ? { ...p, gasket: "none" } : p;
 export const LID_THICKNESS = (p: EnclosureParams) => gasketEnabled(p) ? Math.max(3.2, p.wall) : p.wall;
 const POST_R = 4;
 
