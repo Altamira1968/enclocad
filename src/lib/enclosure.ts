@@ -276,9 +276,14 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
     for (const [x0, x1] of hingeSegments(p).base) {
       const L = x1 - x0, cx = (x0 + x1) / 2;
       b = op(b, brush(knuckle(L), cx, H, z0), ADDITION);
-      b = op(b, brush(box(L, HINGE_R * 2, HINGE_R + 0.5), cx, H - HINGE_R, z0 + (HINGE_R + 0.5) / 2), ADDITION);
-      // alt keskin kenar: mafsala teğet 45° pah (kapak dönerken takılmasın)
-      b = op(b, brush(box(L + 2, 4.2, 4.2), cx, H - 2 * HINGE_R, z0, Math.PI / 4), SUBTRACTION);
+      // destek gerektirmeyen 45° rampa: gövde duvarından mafsalın dış-alt teğet noktasına
+      const tq = HINGE_R * Math.SQRT1_2, zw = z0 + HINGE_R + 0.5;
+      const yb = Math.max(0.5, H - tq - (zw - (z0 - tq)));
+      const sh = new THREE.Shape();
+      sh.moveTo(zw, H); sh.lineTo(zw, yb); sh.lineTo(z0 - tq, H - tq); sh.lineTo(z0, H); sh.closePath();
+      const rg = new THREE.ExtrudeGeometry(sh, { depth: L, bevelEnabled: false });
+      rg.rotateY(-Math.PI / 2); rg.translate(cx + L / 2, 0, 0);
+      b = op(b, brush(rg), ADDITION);
       b = op(b, brush(cyl(PIN_HOLE, L + 1), cx, H, z0, 0, Math.PI / 2), SUBTRACTION);
     }
     // çıtçıt kertiği (ön dış yüz)
