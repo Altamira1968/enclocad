@@ -35,3 +35,5 @@ use the editor.
 - Editor exports use the shared Button and DropdownMenu controls with existing client-side export handlers; keeps individual STL and ZIP downloads accessible in one compact menu.
 - Gallery models live in a client-side catalogue and register as named editor templates; previews and editor loads share identical parameters without persistent visitor storage.
 - Gallery thumbnails are CDN-hosted captures of the actual models rather than simultaneous live scenes; keeps browsing and filtering fast on mobile.
+- Optional filament gasket geometry is guarded by gasketEnabled and shared-link normalization; snap-fit designs cannot accidentally retain a sealing groove.
+- The editor uses a single-open options accordion and a mobile section selector; section names remain accessible without scrolling the entire controls list.

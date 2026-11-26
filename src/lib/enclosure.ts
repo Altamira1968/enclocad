@@ -51,6 +51,7 @@ export interface EnclosureParams {
   height: number;
   wall: number;
   lidMode: LidMode;
+  gasket?: "none" | "tpu175";
   screwMode: ScrewMode;
   screwSize: "M2.5" | "M3";
   pcbEnabled: boolean;
@@ -79,6 +80,7 @@ export const DEFAULT_PARAMS: EnclosureParams = {
   height: 40,
   wall: 2.4,
   lidMode: "screw",
+  gasket: "none",
   screwMode: "insert",
   screwSize: "M3",
   pcbEnabled: true,
@@ -128,7 +130,12 @@ export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"
   USBA2: { kind: "rect", w: 14, h: 16.6 },
 };
 
-export const LID_THICKNESS = (p: EnclosureParams) => p.wall;
+export const gasketEnabled = (p: EnclosureParams) => p.gasket === "tpu175" && p.lidMode === "screw";
+export const TPU_GASKET = { diameter: 1.75, width: 2.1, depth: 1.3, edge: 1, radius: 6 } as const;
+export const gasketInset = (p: EnclosureParams) => p.wall + 7;
+export const gasketRim = (p: EnclosureParams) => gasketInset(p) + TPU_GASKET.width / 2 + TPU_GASKET.edge;
+export const normalizeGasket = (p: EnclosureParams): EnclosureParams => p.lidMode === "hinge" && p.gasket !== "none" ? { ...p, gasket: "none" } : p;
+export const LID_THICKNESS = (p: EnclosureParams) => gasketEnabled(p) ? Math.max(3.2, p.wall) : p.wall;
 const POST_R = 4;
 
 const ev = new Evaluator();
@@ -161,12 +168,67 @@ function cornerPositions(p: EnclosureParams): [number, number][] {
   ];
 }
 
+function roundedPath(w: number, d: number, radius: number): THREE.Shape {
+  const s = new THREE.Shape(), x = w / 2, z = d / 2;
+  const r = Math.max(0.1, Math.min(radius, x - 0.1, z - 0.1));
+  s.moveTo(-x + r, -z); s.lineTo(x - r, -z);
+  s.absarc(x - r, -z + r, r, -Math.PI / 2, 0, false); s.lineTo(x, z - r);
+  s.absarc(x - r, z - r, r, 0, Math.PI / 2, false); s.lineTo(-x + r, z);
+  s.absarc(-x + r, z - r, r, Math.PI / 2, Math.PI, false); s.lineTo(-x, -z + r);
+  s.absarc(-x + r, -z + r, r, Math.PI, Math.PI * 1.5, false); s.closePath();
+  return s;
+}
+
+function gasketCornerRadius(p: EnclosureParams) {
+  return Math.min(TPU_GASKET.radius, Math.min(p.width, p.depth) / 2 - gasketInset(p) - 0.2);
+}
+
+function gasketChannel(p: EnclosureParams, y: number): THREE.BufferGeometry {
+  const i = gasketInset(p), half = TPU_GASKET.width / 2;
+  const s = roundedPath(p.width - 2 * (i - half), p.depth - 2 * (i - half), gasketCornerRadius(p) + half);
+  s.holes.push(roundedPath(p.width - 2 * (i + half), p.depth - 2 * (i + half), gasketCornerRadius(p) - half));
+  const g = new THREE.ExtrudeGeometry(s, { depth: TPU_GASKET.depth + 0.1, bevelEnabled: false, curveSegments: 12 });
+  g.rotateX(-Math.PI / 2); g.translate(0, y - TPU_GASKET.depth, 0);
+  return g;
+}
+
+/** A single closed cavity loft leaves a printable sloped top rim, with screws outside the seal. */
+function gasketCavity(p: EnclosureParams, H: number): THREE.BufferGeometry {
+  const rim = gasketRim(p);
+  const inner = roundedPath(p.width - 2 * rim, p.depth - 2 * rim, gasketCornerRadius(p) - TPU_GASKET.width / 2 - TPU_GASKET.edge).getPoints(8);
+  const wide = roundedPath(p.width - 2 * p.wall, p.depth - 2 * p.wall, 0.1).getPoints(8);
+  const rise = (rim - p.wall) * Math.SQRT2;
+  const y0 = Math.max(p.wall, H - 3.6 - rise), y1 = Math.max(y0 + 0.1, H - 3.6);
+  const rings = [{ pts: wide, y: p.wall }, { pts: wide, y: y0 }, { pts: inner, y: y1 }, { pts: inner, y: H + 0.2 }];
+  const positions: number[] = [];
+  const push = (a: THREE.Vector2, ay: number, b: THREE.Vector2, by: number, c: THREE.Vector2, cy: number) => positions.push(a.x, ay, -a.y, b.x, by, -b.y, c.x, cy, -c.y);
+  for (let k = 0; k < rings.length - 1; k++) {
+    const lo = rings[k], hi = rings[k + 1];
+    if (!lo || !hi || hi.y - lo.y < 0.001) continue;
+    for (let n = 0; n < lo.pts.length - 1; n++) {
+      const a = lo.pts[n], b = lo.pts[n + 1], c = hi.pts[n], d = hi.pts[n + 1];
+      if (!a || !b || !c || !d) continue;
+      push(a, lo.y, b, lo.y, d, hi.y); push(a, lo.y, d, hi.y, c, hi.y);
+    }
+  }
+  for (const [pts, y, flip] of [[wide, p.wall, true], [inner, H + 0.2, false]] as const) {
+    for (const indices of THREE.ShapeUtils.triangulateShape(pts.slice(0, -1), [])) {
+      const [ia, ib, ic] = indices;
+      if (ia === undefined || ib === undefined || ic === undefined) continue;
+      const a = pts[ia], b = pts[ib], c = pts[ic];
+      if (a && b && c) flip ? push(c, y, b, y, a, y) : push(a, y, b, y, c, y);
+    }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute(new Float32Array(positions.length / 3 * 2), 2)); g.computeVertexNormals();
+  return g;
+}
+
 /** Gövde: y=0 tabandır, yükseklik = height - kapak */
 export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
   const t = p.wall;
   const H = p.height - LID_THICKNESS(p);
   let b = chamferBlock(p.width, p.depth, 0, H, chamferSize(p), "top");
-  b = op(b, brush(box(p.width - 2 * t, H, p.depth - 2 * t), 0, H / 2 + t, 0), SUBTRACTION);
+  b = op(b, gasketEnabled(p) ? brush(gasketCavity(p, H)) : brush(box(p.width - 2 * t, H, p.depth - 2 * t), 0, H / 2 + t, 0), SUBTRACTION);
 
   const hole = holeDiameter(p.screwSize, p.screwMode);
   const holeDepth = p.screwMode === "insert" ? 6 : 10;
@@ -192,6 +254,7 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
   }
 
   for (const c of p.cutouts) b = applyCutout(b, p, c, H);
+  if (gasketEnabled(p)) b = op(b, brush(gasketChannel(p, H)), SUBTRACTION);
 
   if (p.lidMode === "hinge") {
     const z0 = -p.depth / 2 - HINGE_R;
@@ -313,9 +376,11 @@ export function buildLid(p: EnclosureParams): THREE.BufferGeometry {
   const t = LID_THICKNESS(p);
   let b = chamferBlock(p.width, p.depth, 0, t, Math.min(chamferSize(p), t * 0.8), "bottom");
   b = decorateLid(b, p);
-  const lip = brush(box(p.width - 2 * t - 0.4, 2, p.depth - 2 * t - 0.4), 0, -1, 0);
-  b = op(b, lip, ADDITION);
-  b = op(b, brush(box(p.width - 4 * t, 2.2, p.depth - 4 * t), 0, -1.1, 0), SUBTRACTION);
+  if (!gasketEnabled(p)) {
+    const lip = brush(box(p.width - 2 * t - 0.4, 2, p.depth - 2 * t - 0.4), 0, -1, 0);
+    b = op(b, lip, ADDITION);
+    b = op(b, brush(box(p.width - 4 * t, 2.2, p.depth - 4 * t), 0, -1.1, 0), SUBTRACTION);
+  }
   if (p.lidMode === "hinge") {
     const z0 = -p.depth / 2 - HINGE_R;
     for (const [x0, x1] of hingeSegments(p).lid) {

@@ -5,3 +5,7 @@
 - [x] Altı örnek tasarımı ve filtrelenebilir galeri sayfasını ekle.
 - [x] Ana sayfa ve editöre galeri bağlantılarını ekle.
 - [x] Galeriden tasarım açmayı ve mobil görünümü doğrula.
+- [x] TPU filament conta kanalını ve düz kapak basma yüzeyini ekle.
+- [x] Çıtçıtlı kapakta contayı kapat ve gerekçesini göster.
+- [x] Sol seçenekleri tek açık bölümlü kompakt listeye dönüştür.
+- [x] Geometri, indirme ve farklı ekran boyutlarını doğrula (13 test; masaüstü ve mobil tarayıcı akışı).

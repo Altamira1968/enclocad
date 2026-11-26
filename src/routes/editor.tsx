@@ -10,13 +10,14 @@ import JSZip from "jszip";
 import {
   DEFAULT_PARAMS, PCB_PRESETS, LID_THICKNESS, buildBase, buildLid, buildClip,
   type EnclosureParams, type Cutout, type CutoutType, type Face,
-  type LidMode as LidModeT,
+  gasketEnabled, gasketRim, normalizeGasket,
 } from "@/lib/enclosure";
 import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileBox, Archive, LayoutGrid } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Download, ChevronDown, FileBox, Archive, LayoutGrid, Info } from "lucide-react";
 
 const Viewer = lazy(() => import("@/components/Viewer"));
 import PartSearch from "@/components/PartSearch";
@@ -61,31 +62,36 @@ function Seg<T extends string>({ value, options, onChange }: {
   return (
     <div className="flex rounded-md border border-border p-0.5">
       {options.map((o) => (
-        <button
+        <Button variant="ghost"
           key={o.v} type="button" onClick={() => onChange(o.v)}
-          className={`flex-1 rounded px-2 py-1 text-xs font-medium transition-colors ${value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          className={`h-auto min-h-8 flex-1 whitespace-normal rounded px-2 py-1 text-xs font-medium transition-colors ${value === o.v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
         >
           {o.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ value, title, children }: { value: string; title: string; children: ReactNode }) {
   return (
-    <section className="space-y-3 border-b border-border px-5 py-4">
-      <h2 className="font-mono text-xs uppercase tracking-widest text-primary">{title}</h2>
-      {children}
-    </section>
+    <AccordionItem value={value} className="border-border max-md:data-[state=closed]:hidden">
+      <AccordionTrigger className="px-4 py-2.5 text-xs font-semibold text-primary hover:no-underline">{title}</AccordionTrigger>
+      <AccordionContent className="max-h-[calc(100dvh-28rem)] space-y-2 overflow-y-auto px-4 pb-3 max-md:max-h-[28dvh]">
+        {children}
+      </AccordionContent>
+    </AccordionItem>
   );
 }
+const OPTION_SECTIONS: Key[] = ["kits", "dims", "lidMode", "gasket", "lidDeco", "screws", "pcb", "din", "cutouts"];
 
 const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT", "USBB", "BARREL", "MICROUSB", "MICROHDMI", "AUDIO", "USBA2"];
 const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
   const [lang, setLang] = useState<Lang>("en");
+  const [activeSection, setActiveSection] = useState("dims");
+  const [gasketNotice, setGasketNotice] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const L = (k: Key) => tr(lang, k);
   const [p, setP] = useState<EnclosureParams>(DEFAULT_PARAMS);
@@ -101,10 +107,10 @@ function Index() {
       const h = window.location.hash.slice(1);
       const tpl = new URLSearchParams(window.location.search).get("template");
       if (tpl && TEMPLATES[tpl]) {
-        setP({ ...DEFAULT_PARAMS, ...TEMPLATES[tpl] } as EnclosureParams);
+        setP(normalizeGasket({ ...DEFAULT_PARAMS, ...TEMPLATES[tpl] } as EnclosureParams));
         setKitId(GALLERY_MODELS.find((model) => model.id === tpl)?.boardId ?? null);
       }
-      else if (h.startsWith("d=")) setP({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) });
+      else if (h.startsWith("d=")) setP(normalizeGasket({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) }));
     } catch { /* geçersiz link */ }
     setHashReady(true);
   }, []);
@@ -116,7 +122,7 @@ function Index() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-  const set = <K extends keyof EnclosureParams>(k: K, v: EnclosureParams[K]) => setP((s) => ({ ...s, [k]: v }));
+  const set = <K extends keyof EnclosureParams>(k: K, v: EnclosureParams[K]) => setP((s) => normalizeGasket({ ...s, [k]: v }));
 
   useEffect(() => {
     const saved = localStorage.getItem("enclocad-lang");
@@ -182,7 +188,7 @@ function Index() {
   const size = Math.max(p.width, p.depth, p.height);
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-dvh flex-col bg-background text-foreground">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
         <div className="flex items-baseline gap-3">
           <Link to="/" className="font-mono text-xl font-bold tracking-tight hover:opacity-80">
@@ -232,32 +238,57 @@ function Index() {
       {searchOpen && <PartSearch lang={lang} onClose={() => setSearchOpen(false)} />}
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
-        <aside className="w-full overflow-y-auto border-r border-border bg-card md:w-80">
-          <Section title={L("kits")}>
+        <aside className="w-full shrink-0 overflow-hidden border-r border-border bg-card md:w-80">
+          <label className="block px-4 pt-2 md:hidden">
+            <span className="sr-only">{L("options")}</span>
+            <select aria-label={L("options")} value={activeSection} onChange={(e) => setActiveSection(e.target.value)} className="w-full rounded-md border border-input bg-background p-2 text-sm">
+              {OPTION_SECTIONS.map((key) => <option key={key} value={key}>{L(key)}</option>)}
+            </select>
+          </label>
+          <Accordion type="single" collapsible value={activeSection} onValueChange={setActiveSection}>
+          <Section value="kits" title={L("kits")}>
             <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
             <div className="grid grid-cols-1 gap-2">
               {KITS.map((k) => (
-                <button key={k.id} type="button" onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
-                  className="rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                <Button variant="outline" key={k.id} type="button" onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
+                  className="h-auto justify-start whitespace-normal rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
                   ▣ {k.name}
-                </button>
+                </Button>
               ))}
             </div>
           </Section>
-          <Section title={L("dims")}>
+          <Section value="dims" title={L("dims")}>
             <NumField label={L("width")} value={p.width} min={30} max={300} step={1} onChange={(v) => set("width", v)} />
             <NumField label={L("depth")} value={p.depth} min={30} max={300} step={1} onChange={(v) => set("depth", v)} />
             <NumField label={L("height")} value={p.height} min={15} max={200} step={1} onChange={(v) => set("height", v)} />
             <NumField label={L("wall")} value={p.wall} min={1.6} max={4} step={0.2} onChange={(v) => set("wall", v)} />
           </Section>
 
-          <Section title={L("lidMode")}>
-            <Seg value={p.lidMode} onChange={(v) => { const k = KITS.find((x) => x.id === kitId); if (k) setP(kitParams(k, v as LidModeT)); else set("lidMode", v); }}
+          <Section value="lidMode" title={L("lidMode")}>
+            <Seg value={p.lidMode} onChange={(v) => {
+              setGasketNotice(v === "hinge" && gasketEnabled(p));
+              const k = KITS.find((x) => x.id === kitId);
+              if (k) setP(normalizeGasket({ ...kitParams(k, v), gasket: p.gasket ?? "none" }));
+              else set("lidMode", v);
+            }}
               options={[{ v: "screw", label: L("lidScrew") }, { v: "hinge", label: L("lidHinge") }]} />
             {p.lidMode === "hinge" && <p className="text-xs text-muted-foreground">{L("hingeHint")}</p>}
+            {gasketNotice && <p role="status" className="flex items-start gap-2 text-xs text-primary"><Info className="size-4 shrink-0" />{L("gasketDisabled")}</p>}
           </Section>
 
-          <Section title={L("lidDeco")}>
+          <Section value="gasket" title={L("gasket")}>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={gasketEnabled(p)} disabled={p.lidMode === "hinge"} onChange={(e) => { set("gasket", e.target.checked ? "tpu175" : "none"); setGasketNotice(false); }} className="accent-primary disabled:opacity-40" aria-describedby="gasket-hint" />
+              <span className={p.lidMode === "hinge" ? "text-muted-foreground" : "text-foreground"}>{L("gasketTpu")}</span>
+            </label>
+            <p id="gasket-hint" className="flex items-start gap-2 text-xs text-primary"><Info className="size-4 shrink-0" />{L(p.lidMode === "hinge" ? "gasketRequiresScrew" : "gasketHint")}</p>
+            {gasketEnabled(p) && <>
+              <p className="text-xs text-muted-foreground">{L("gasketRimHint")} {gasketRim(p).toFixed(1)} mm.</p>
+              <p role="status" className="text-xs text-primary">{L(p.honeycomb || p.cutouts.some((c) => c.type !== "NONE") ? "gasketOpenings" : "gasketTest")}</p>
+            </>}
+          </Section>
+
+          <Section value="lidDeco" title={L("lidDeco")}>
             <label className="block space-y-1 text-sm">
               <span className="text-muted-foreground">{L("lidText")}</span>
               <input type="text" value={p.lidText} maxLength={24} onChange={(e) => set("lidText", e.target.value)}
@@ -273,14 +304,14 @@ function Index() {
             <p className="text-xs text-muted-foreground">{L("lidTextHint")}</p>
           </Section>
 
-          <Section title={L("screws")}>
+          <Section value="screws" title={L("screws")}>
             <Seg value={p.screwMode} onChange={(v) => set("screwMode", v)}
               options={[{ v: "insert", label: L("insert") }, { v: "tap", label: L("tap") }]} />
             <Seg value={p.screwSize} onChange={(v) => set("screwSize", v)}
               options={[{ v: "M2.5", label: "M2.5" }, { v: "M3", label: "M3" }]} />
           </Section>
 
-          <Section title={L("pcb")}>
+          <Section value="pcb" title={L("pcb")}>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={p.pcbEnabled} onChange={(e) => set("pcbEnabled", e.target.checked)} className="accent-primary" />
               {L("pcb")}
@@ -303,12 +334,12 @@ function Index() {
             )}
           </Section>
 
-          <Section title={L("din")}>
+          <Section value="din" title={L("din")}>
             <Seg value={p.din} onChange={(v) => set("din", v)}
               options={[{ v: "none", label: L("none") }, { v: "integrated", label: L("integrated") }, { v: "clip", label: L("clip") }]} />
           </Section>
 
-          <Section title={L("cutouts")}>
+          <Section value="cutouts" title={L("cutouts")}>
             {p.cutouts.map((c) => (
               <div key={c.id} className="space-y-2 rounded-md border border-border p-2">
                 <div className="flex gap-2">
@@ -333,9 +364,10 @@ function Index() {
               + {L("add")}
             </button>
           </Section>
+          </Accordion>
         </aside>
 
-        <main className="relative min-h-[50vh] flex-1 bg-viewport">
+        <main className="relative min-h-0 flex-1 bg-viewport">
           <ClientOnly fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
             <Suspense fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
               <Viewer base={geo?.base ?? null} lid={geo?.lid ?? null} clip={geo?.clip ?? null}
@@ -343,7 +375,7 @@ function Index() {
             </Suspense>
           </ClientOnly>
           {failed && <p className="absolute left-4 top-4 text-sm text-destructive">{L("error")}</p>}
-          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card/90 px-4 py-3 backdrop-blur">
+          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/90 px-3 py-2 backdrop-blur">
             <span className="font-mono text-xs uppercase text-primary">{L("view")}</span>
             <Seg value={mode} onChange={setMode}
               options={[{ v: "all", label: L("all") }, { v: "base", label: L("baseOnly") }, { v: "lid", label: L("lidOnly") }]} />

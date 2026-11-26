@@ -1,5 +1,14 @@
 export type Lang = "tr" | "en";
 const dict = {
+  options: { tr: "Seçenekler", en: "Options" },
+  gasket: { tr: "Sızdırmazlık / Conta", en: "Sealing / Gasket" },
+  gasketTpu: { tr: "1.75 mm TPU filament kanalı", en: "1.75 mm TPU filament groove" },
+  gasketHint: { tr: "Kanal: 2.1 × 1.3 mm. TPU sertliği ve baskı toleransına göre deneme yapın; uç birleşimini sızdırmaz kapatın.", en: "Groove: 2.1 × 1.3 mm. Test for TPU hardness and print tolerance; seal the filament joint." },
+  gasketRequiresScrew: { tr: "Mevcut çıtçıtlı kapak eşit conta basıncı sağlamaz. Conta için vidalı kapak seçin.", en: "The current snap latch does not provide even gasket pressure. Choose a screw lid." },
+  gasketDisabled: { tr: "Çıtçıtlı kapağa geçildiği için conta kanalı kapatıldı.", en: "Gasket groove was switched off when the snap-fit lid was selected." },
+  gasketRimHint: { tr: "Üstteki içe genişleyen conta kenarı için kart ve bileşen boşluğunu kontrol edin. Kenar genişliği:", en: "Check board and component clearance under the inward top sealing rim. Rim width:" },
+  gasketOpenings: { tr: "Açık portlar veya havalandırma sızdırmazlığı bozar; rakor ve portlar ayrıca yalıtılmalıdır. IP koruma garantisi yoktur.", en: "Open ports or vents defeat sealing; glands and ports need separate seals. No IP protection rating is guaranteed." },
+  gasketTest: { tr: "Katmanlar ve filament birleşimi sızıntı yapabilir. Su/toz koruması ve IP sınıfı fiziksel test olmadan garanti edilmez.", en: "Layers and the filament joint may leak. Water/dust protection and IP ratings require physical testing." },
   gallery: { tr: "Galeri", en: "Gallery" },
   galleryTitle: { tr: "Hazır tasarım galerisi", en: "Enclosure gallery" },
   gallerySub: { tr: "Elektronik projeleriniz için EncloCAD örnekleri.", en: "EncloCAD examples for your electronics projects." },
