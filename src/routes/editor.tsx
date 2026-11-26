@@ -28,10 +28,10 @@ export const Route = createFileRoute("/editor")({
     typeof search["template"] === "string" ? { template: search["template"] } : {},
   head: () => ({
     meta: [
-      { title: "EncloCAD Editor — Design Your Enclosure" },
-      { name: "description", content: "Enter dimensions, add cutouts and DIN rail mounting, then download print-ready STL files." },
-      { property: "og:title", content: "EncloCAD Editor — Design Your Enclosure" },
-      { property: "og:description", content: "Enter dimensions, add cutouts and DIN rail mounting, then download print-ready STL files." },
+      { title: "Enclosure Editor — Custom Raspberry Pi, Arduino & ESP32 Case STL | EncloCAD" },
+      { name: "description", content: "Set box dimensions, USB-C, RJ45 and PG gland cutouts, DIN rail mount and hinged or screw lids, then export print-ready STL files for free." },
+      { property: "og:title", content: "Enclosure Editor — Custom Raspberry Pi, Arduino & ESP32 Case STL | EncloCAD" },
+      { property: "og:description", content: "Set box dimensions, USB-C, RJ45 and PG gland cutouts, DIN rail mount and hinged or screw lids, then export print-ready STL files for free." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://enclocad.com/editor" },
       { name: "twitter:card", content: "summary_large_image" },

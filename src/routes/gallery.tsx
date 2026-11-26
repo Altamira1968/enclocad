@@ -12,9 +12,9 @@ const FILTERS: { value: GalleryFilter; label: Key }[] = [
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({ meta: [
-    { title: "EncloCAD Gallery — Ready-Made Electronics Enclosures" },
-    { name: "description", content: "Explore customizable enclosure examples for Raspberry Pi, Arduino, ESP32, relays, sensors and cable connections." },
-    { property: "og:title", content: "EncloCAD Gallery — Ready-Made Electronics Enclosures" },
+    { title: "3D Printable Enclosure Gallery — Raspberry Pi, Arduino, ESP32 STL | EncloCAD" },
+    { name: "description", content: "Free customizable 3D printable enclosures: Raspberry Pi DIN rail case, ESP32 hinged box, Arduino Uno case, sensor boxes and more. Edit and download STL." },
+    { property: "og:title", content: "3D Printable Enclosure Gallery — Raspberry Pi, Arduino, ESP32 STL | EncloCAD" },
     { property: "og:description", content: "Explore enclosure examples in 3D and open any design in the EncloCAD editor." },
     { property: "og:type", content: "website" },
     { property: "og:url", content: "https://enclocad.com/gallery" },

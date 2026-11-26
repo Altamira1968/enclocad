@@ -34,10 +34,10 @@ const Viewer = lazy(() => import("@/components/Viewer"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "EncloCAD — Parametric Electronics Enclosure Designer" },
-      { name: "description", content: "Design screw-lid or hinged enclosures with DIN rail mounting right in your browser, then download print-ready STL files." },
-      { property: "og:title", content: "EncloCAD — Parametric Electronics Enclosure Designer" },
-      { property: "og:description", content: "Enter your dimensions, add PG gland and connector cutouts, and download STL files ready for your 3D printer." },
+      { title: "EncloCAD — Free Parametric 3D Print Enclosure Generator (STL)" },
+      { name: "description", content: "Free browser-based enclosure generator for 3D printing: Raspberry Pi, Arduino and ESP32 cases with DIN rail, snap-fit hinged lids and TPU gasket. Download STL." },
+      { property: "og:title", content: "EncloCAD — Free Parametric 3D Print Enclosure Generator (STL)" },
+      { property: "og:description", content: "Design custom 3D printed project boxes for Raspberry Pi, Arduino and ESP32 in your browser and download support-free STL files." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://enclocad.com/" },
       { name: "twitter:card", content: "summary_large_image" },
