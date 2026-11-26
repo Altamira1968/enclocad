@@ -275,7 +275,9 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
     const z0 = -p.depth / 2 - HINGE_R;
     for (const [x0, x1] of hingeSegments(p).base) {
       const L = x1 - x0, cx = (x0 + x1) / 2;
-      b = op(b, brush(knuckle(L), cx, H, z0), ADDITION);
+      // üstü kapak tavanı hizasında düz: kapak mafsallarıyla aynı örüntü
+      const tl = LID_THICKNESS(p);
+      b = op(b, op(brush(knuckle(L), cx, H, z0), brush(box(L + 2, 20, 20), cx, H + tl + 10, z0), SUBTRACTION), ADDITION);
       // destek gerektirmeyen 45° rampa: gövde duvarından mafsalın dış-alt teğet noktasına
       const tq = HINGE_R * Math.SQRT1_2, zw = z0 + HINGE_R + 0.5;
       const yb = Math.max(0.5, H - tq - (zw - (z0 - tq)));
