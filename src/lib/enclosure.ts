@@ -72,6 +72,8 @@ export interface EnclosureParams {
   /** Kapakta petek havalandırma */
   honeycomb: boolean;
   hexSize: number;
+  /** İç bölme duvarları: merkez (x,z), boyut (w,d), tabandan yükseklik h (mm) */
+  dividers?: { x: number; z: number; w: number; d: number; h: number }[];
 }
 
 export const DEFAULT_PARAMS: EnclosureParams = {
@@ -254,6 +256,11 @@ export function buildBase(p: EnclosureParams): THREE.BufferGeometry {
       b = op(b, brush(cyl(hole + 2.4, sh), x, t + sh / 2, z), ADDITION);
       b = op(b, brush(cyl(hole, sh + t), x, t + sh / 2 + 0.01 + t / 2, z), SUBTRACTION);
     }
+  }
+
+  for (const v of p.dividers ?? []) {
+    const h = Math.min(v.h, H - t);
+    b = op(b, brush(box(v.w, h, v.d), v.x, t + h / 2, v.z), ADDITION);
   }
 
   for (const c of p.cutouts) b = applyCutout(b, p, c, H);

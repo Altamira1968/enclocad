@@ -7,11 +7,13 @@ import unoImage from "@/assets/enclosure-gallery-2.png.asset.json";
 import relayImage from "@/assets/enclosure-gallery-3.png.asset.json";
 import sensorImage from "@/assets/enclosure-gallery-4.png.asset.json";
 import cableImage from "@/assets/enclosure-gallery-5.png.asset.json";
+import pipeImage from "@/assets/enclosure-gallery-6.png.asset.json";
 
 export const GALLERY_IMAGES: Record<string, string> = {
   "gallery-rpi4-din": rpiImage.url, "gallery-esp32-iot": espImage.url,
   "gallery-arduino-uno": unoImage.url, "gallery-relay": relayImage.url,
   "gallery-sensor": sensorImage.url, "gallery-cable": cableImage.url,
+  "gallery-pipe-case": pipeImage.url,
 };
 
 export type GalleryFilter = "all" | "hinge" | "screw" | "din";
@@ -52,6 +54,19 @@ export const GALLERY_MODELS: GalleryModel[] = [
       cutouts: [{ id: "cable-in", face: "front", type: "PG9", u: -22, v: 0 },
         { id: "cable-out", face: "front", type: "PG9", u: 22, v: 0 },
         { id: "cable-back", face: "back", type: "PG11", u: 0, v: 0 }] } },
+  // 186×146×48 mm: 2 uzun pipo (üst bölme), kısa pipo + tütün haznesi (alt bölmeler)
+  { id: "gallery-pipe-case", title: "galleryPipe", description: "galleryPipeDesc",
+    params: { ...DEFAULT_PARAMS, width: 186, depth: 146, height: 48, wall: 2.4, lidMode: "hinge", pcbEnabled: false,
+      cutouts: [], lidText: "PIPE CASE", lidTextSize: 10,
+      dividers: [
+        { x: 0, z: 10.4, w: 181.2, d: 2, h: 30 },
+        { x: 21.6, z: 41, w: 2, d: 59.2, h: 43 },
+        // tütün haznesi iç kapağı için 22 mm yükseklikte oturma basamağı
+        { x: 56.6, z: 69.1, w: 68, d: 3, h: 22 },
+        { x: 56.6, z: 12.9, w: 68, d: 3, h: 22 },
+        { x: 89.1, z: 41, w: 3, d: 53.2, h: 22 },
+        { x: 24.1, z: 41, w: 3, d: 53.2, h: 22 },
+      ] } },
 ];
 
 export function filterGallery(filter: GalleryFilter): GalleryModel[] {

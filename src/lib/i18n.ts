@@ -30,6 +30,8 @@ const dict = {
   gallerySensor: { tr: "Kompakt Sensör Kutusu", en: "Compact Sensor Box" },
   gallerySensorDesc: { tr: "Çift yan ızgara, petek kapak ve vidasız çıtçıt kilit.", en: "Twin side vents, honeycomb lid and a screw-free snap latch." },
   galleryCable: { tr: "Kablo Bağlantı Kutusu", en: "Cable Junction Box" },
+  galleryPipe: { tr: "Pipo Seyahat Kutusu", en: "Pipe Travel Case" },
+  galleryPipeDesc: { tr: "3 pipo, tütün haznesi, çakmak ve maşa için bölmeli, menteşeli çıtçıt kapaklı 186×146×48 mm kutu.", en: "186×146×48 mm hinged snap case with bays for 3 pipes, a tobacco bin, lighter and tamper." },
   galleryCableDesc: { tr: "PG9 ve PG11 rakor kesimleri, vidalı kapak. Sızdırmazlık garantisi yoktur.", en: "PG9 and PG11 gland openings with a screw lid. Not rated waterproof." },
   tagline: { tr: "Parametrik elektronik kutu ve DIN rayı tasarımcısı", en: "Parametric electronics enclosure & DIN rail designer" },
   dims: { tr: "Ölçüler (mm)", en: "Dimensions (mm)" },
