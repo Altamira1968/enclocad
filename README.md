@@ -1,26 +1,54 @@
-# EncloCad
+# EncloCAD
 
-meshy.ai şu anda lovable ye ekli mi, değilse nasıl eklerim?
+**Free parametric 3D-printable enclosure generator — right in your browser.**
 
-This project was built with [Lovable](https://lovable.dev).
+🌐 **Live app:** https://enclocad.com
 
-**Live app**: https://meshy-lovable-bridge-guide.lovable.app
+EncloCAD lets makers design millimetre-accurate electronics enclosures and export print-ready STL files in seconds. No account, no install, no server-side rendering — all geometry is generated client-side.
 
-## Build with Lovable
+## Features
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/a32ee3dc-d9ee-4cba-ba5d-c445353b6ce4).
+- **Hardware kits** — one-click layouts for Arduino Uno, Raspberry Pi 4 and ESP32 with every port cut in the right place
+- **Lid options** — screw-on lid or print-in-place hinge with snap-fit latch
+- **Wall cutouts** — PG7/PG9/PG11 cable glands, USB-C, DC jack, RJ45, vents (unlimited)
+- **DIN rail mount**, PCB standoffs and screw bosses
+- **TPU filament gasket groove** for splash-proof boxes
+- **Lid customisation** — engraved text and honeycomb grille
+- **Interior dividers** and separate inner lids (e.g. the Pipe Travel Case)
+- **Print-ready output** — chamfered edges, optimal bed orientation, per-part STL or ZIP download
+- **Shareable links** and a ready-made model gallery
+- **Spare-part search** across public 3D model libraries
+- Bilingual interface: English / Türkçe
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Tech stack
 
-## Development
+- [TanStack Start](https://tanstack.com/start) + React 19 + Vite
+- Tailwind CSS v4
+- [Three.js](https://threejs.org) + [three-bvh-csg](https://github.com/gkjohnson/three-bvh-csg) for in-browser CSG geometry
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Run locally
+
+Requires Node.js 20+ (or Bun).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+git clone https://github.com/Altamira1968/enclocad.git
+cd enclocad
+npm install
 npm run dev
 ```
+
+Run tests with `npx vitest run`.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `src/lib/enclosure.ts` | Parametric enclosure geometry |
+| `src/lib/kits.ts` | Hardware kit profiles |
+| `src/lib/gallery.ts` | Gallery models |
+| `src/lib/i18n.ts` | TR/EN interface strings |
+| `src/routes/` | Pages (home, editor, gallery, case pages) |
+
+---
+
+Built with [Lovable](https://lovable.dev).
