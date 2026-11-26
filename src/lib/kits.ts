@@ -3,6 +3,14 @@ import { DEFAULT_PARAMS, type Cutout, type CutoutType, type EnclosureParams, typ
 
 type Edge = "left" | "right" | "front" | "back";
 interface Port { edge: Edge; pos: number; type: CutoutType; z: number }
+export type KitCategory = "arduino" | "rpi" | "iot";
+
+export function kitCategory(id: string): KitCategory {
+  if (["uno", "mega", "nano"].includes(id)) return "arduino";
+  if (id.startsWith("rpi")) return "rpi";
+  return "iot";
+}
+
 interface KitSpec {
   id: string; name: string;
   W: number; D: number;

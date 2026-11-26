@@ -3,7 +3,7 @@ import { NumField } from "@/components/NumField";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import { TEMPLATES } from "@/lib/templates";
 import { GALLERY_MODELS } from "@/lib/gallery";
-import { KITS, kitParams } from "@/lib/kits";
+import { KITS, kitParams, kitCategory, type KitCategory } from "@/lib/kits";
 import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
@@ -78,6 +78,7 @@ function Index() {
   const [lang, setLang] = useState<Lang>("en");
   const [activeSection, setActiveSection] = useState("dims");
   const [gasketNotice, setGasketNotice] = useState(false);
+  const [kitCat, setKitCat] = useState<KitCategory>("arduino");
   const [searchOpen, setSearchOpen] = useState(false);
   const L = (k: Key) => tr(lang, k);
   const [p, setP] = useState<EnclosureParams>(DEFAULT_PARAMS);
@@ -234,8 +235,10 @@ function Index() {
           <Accordion type="single" collapsible value={activeSection} onValueChange={setActiveSection}>
           <Section value="kits" title={L("kits")}>
             <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
+            <Seg value={kitCat} onChange={setKitCat}
+              options={[{ v: "arduino", label: L("kitCatArduino") }, { v: "rpi", label: L("kitCatRpi") }, { v: "iot", label: L("kitCatIot") }]} />
             <div className="grid grid-cols-1 gap-2">
-              {KITS.map((k) => (
+              {KITS.filter((k) => kitCategory(k.id) === kitCat).map((k) => (
                 <Button variant="outline" key={k.id} type="button" onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
                   className="h-auto justify-start whitespace-normal rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
                   ▣ {k.name}
