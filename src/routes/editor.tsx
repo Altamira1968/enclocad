@@ -81,7 +81,8 @@ const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
   const [lang, setLang] = useState<Lang>("en");
-  const [activeSection, setActiveSection] = useState("kits");
+  const [activeSection, setActiveSection] = useState("dims");
+  const [panelMode, setPanelMode] = useState<"custom" | "kits">("custom");
   const [gasketNotice, setGasketNotice] = useState(false);
   const [kitCat, setKitCat] = useState<KitCategory>("arduino");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -231,15 +232,23 @@ function Index() {
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         <aside className="w-full shrink-0 overflow-hidden border-r border-border bg-card md:w-80">
+          <div role="tablist" aria-label={L("options")} className="grid grid-cols-2 gap-1 border-b border-border p-2">
+            {(["custom", "kits"] as const).map((m) => (
+              <Button key={m} type="button" role="tab" aria-selected={panelMode === m} variant={panelMode === m ? "default" : "ghost"} size="sm"
+                onClick={() => { setPanelMode(m); setActiveSection(m === "kits" ? "kits" : "dims"); }}>
+                {m === "custom" ? `📐 ${L("tabCustom")}` : `⚡ ${L("tabKits")}`}
+              </Button>
+            ))}
+          </div>
+          <p className="border-b border-border px-4 py-2 text-xs text-muted-foreground">{L(panelMode === "custom" ? "tabCustomHint" : "tabKitsHint")}</p>
           <label className="block px-4 pt-2 md:hidden">
             <span className="sr-only">{L("options")}</span>
             <select aria-label={L("options")} value={activeSection} onChange={(e) => setActiveSection(e.target.value)} className="w-full rounded-md border border-input bg-background p-2 text-sm">
-              {OPTION_SECTIONS.map((key) => <option key={key} value={key}>{L(key)}</option>)}
+              {OPTION_SECTIONS.filter((k) => k !== "kits" || panelMode === "kits").map((key) => <option key={key} value={key}>{L(key)}</option>)}
             </select>
           </label>
           <Accordion type="single" collapsible value={activeSection} onValueChange={setActiveSection}>
-          <div className="border-b border-border bg-muted/40 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-foreground max-md:hidden">{L("step1")}</div>
-          <Section value="kits" title={L("kits")} badge={KITS.find((k) => k.id === kitId)?.name ?? ""}>
+          {panelMode === "kits" && <Section value="kits" title={L("kits")} badge={KITS.find((k) => k.id === kitId)?.name ?? ""}>
             <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
             <Seg value={kitCat} onChange={setKitCat}
               options={[{ v: "arduino", label: L("kitCatArduino") }, { v: "rpi", label: L("kitCatRpi") }, { v: "iot", label: L("kitCatIot") }]} />
@@ -256,8 +265,8 @@ function Index() {
             {kitId && <p role="status" className="rounded-md border border-primary/40 bg-primary/10 p-2 text-xs text-foreground">
               <strong className="text-primary">✓ {KITS.find((k) => k.id === kitId)?.name}</strong> {L("kitLoaded")}
             </p>}
-          </Section>
-          <div className="border-b border-border bg-muted/40 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-foreground max-md:hidden">{L("step2")}</div>
+          </Section>}
+          {panelMode === "kits" && <div className="border-b border-border bg-muted/40 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-foreground max-md:hidden">{L("step2")}</div>}
           <Section value="dims" title={L("dims")} badge={`${p.width}×${p.depth}×${p.height}`}>
             <NumField label={L("width")} value={p.width} min={30} max={300} step={1} onChange={(v) => set("width", v)} />
             <NumField label={L("depth")} value={p.depth} min={30} max={300} step={1} onChange={(v) => set("depth", v)} />
