@@ -1,7 +1,9 @@
 // Thingiverse/Printables paylaşımları için adlandırılmış hazır tasarımlar (?template=...)
 import type { EnclosureParams } from "./enclosure";
+import { GALLERY_MODELS } from "./gallery";
 
 export const TEMPLATES: Record<string, Partial<EnclosureParams>> = {
+  ...Object.fromEntries(GALLERY_MODELS.map((model) => [model.id, model.params])),
   "rpi4-din": {
     "width": 100,
     "depth": 72,

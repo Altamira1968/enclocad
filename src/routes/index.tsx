@@ -3,6 +3,8 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import * as THREE from "three";
 import { DEFAULT_PARAMS, LID_THICKNESS, buildBase, buildLid, buildClip, type EnclosureParams } from "@/lib/enclosure";
 import type { Marker } from "@/components/Viewer";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid } from "lucide-react";
 
 const DEMO: EnclosureParams = {
   ...DEFAULT_PARAMS,
@@ -100,6 +102,7 @@ function Landing() {
           Enclo<span className="text-primary">CAD</span>
         </span>
         <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="sm"><Link to="/gallery"><LayoutGrid />{L("gallery")}</Link></Button>
           <div className="flex rounded-md border border-border p-0.5">
             {(["tr", "en"] as Lang[]).map((v) => (
               <button key={v} type="button"

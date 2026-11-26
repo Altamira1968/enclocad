@@ -1,6 +1,7 @@
 import { repairMesh } from "@/lib/meshRepair";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import { TEMPLATES } from "@/lib/templates";
+import { GALLERY_MODELS } from "@/lib/gallery";
 import { KITS, kitParams } from "@/lib/kits";
 import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
 import * as THREE from "three";
@@ -15,12 +16,14 @@ import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileBox, Archive } from "lucide-react";
+import { Download, ChevronDown, FileBox, Archive, LayoutGrid } from "lucide-react";
 
 const Viewer = lazy(() => import("@/components/Viewer"));
 import PartSearch from "@/components/PartSearch";
 
 export const Route = createFileRoute("/editor")({
+  validateSearch: (search: Record<string, unknown>): { template?: string } =>
+    typeof search["template"] === "string" ? { template: search["template"] } : {},
   head: () => ({
     meta: [
       { title: "EncloCAD Editor — Design Your Enclosure" },
@@ -97,7 +100,10 @@ function Index() {
     try {
       const h = window.location.hash.slice(1);
       const tpl = new URLSearchParams(window.location.search).get("template");
-      if (tpl && TEMPLATES[tpl]) setP({ ...DEFAULT_PARAMS, ...TEMPLATES[tpl] } as EnclosureParams);
+      if (tpl && TEMPLATES[tpl]) {
+        setP({ ...DEFAULT_PARAMS, ...TEMPLATES[tpl] } as EnclosureParams);
+        setKitId(GALLERY_MODELS.find((model) => model.id === tpl)?.boardId ?? null);
+      }
       else if (h.startsWith("d=")) setP({ ...DEFAULT_PARAMS, ...JSON.parse(decodeURIComponent(h.slice(2))) });
     } catch { /* geçersiz link */ }
     setHashReady(true);
@@ -185,6 +191,7 @@ function Index() {
           <p className="hidden text-sm text-muted-foreground xl:block">{L("tagline")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Button asChild variant="ghost"><Link to="/gallery"><LayoutGrid />{L("gallery")}</Link></Button>
           <button type="button" onClick={() => setSearchOpen(true)}
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
             🔍 {L("psOpen")}

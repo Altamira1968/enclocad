@@ -33,3 +33,5 @@ use the editor.
 - UI strings live in src/lib/i18n.ts (TR/EN dictionary); every new label needs both languages.
 - Spare-part search proxies the public Printables GraphQL API through a server function (no key, avoids CORS).
 - Editor exports use the shared Button and DropdownMenu controls with existing client-side export handlers; keeps individual STL and ZIP downloads accessible in one compact menu.
+- Gallery models live in a client-side catalogue and register as named editor templates; previews and editor loads share identical parameters without persistent visitor storage.
+- Gallery thumbnails are CDN-hosted captures of the actual models rather than simultaneous live scenes; keeps browsing and filtering fast on mobile.
