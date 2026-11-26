@@ -1,4 +1,5 @@
 import { repairMesh } from "@/lib/meshRepair";
+import { NumField } from "@/components/NumField";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import { TEMPLATES } from "@/lib/templates";
 import { GALLERY_MODELS } from "@/lib/gallery";
@@ -37,24 +38,6 @@ export const Route = createFileRoute("/editor")({
   }),
   component: Index,
 });
-
-function NumField({ label, value, onChange, min, max, step = 0.5 }: {
-  label: string; value: number; onChange: (v: number) => void; min: number; max: number; step?: number;
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <input
-        type="number" value={value} min={min} max={max} step={step}
-        onChange={(e) => {
-          const v = Number(e.target.value);
-          if (!Number.isNaN(v)) onChange(Math.min(max, Math.max(min, v)));
-        }}
-        className="w-24 rounded-md border border-input bg-background px-2 py-1 text-right font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-      />
-    </label>
-  );
-}
 
 function Seg<T extends string>({ value, options, onChange }: {
   value: T; options: { v: T; label: string }[]; onChange: (v: T) => void;
