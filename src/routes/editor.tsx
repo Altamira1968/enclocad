@@ -59,10 +59,15 @@ function Seg<T extends string>({ value, options, onChange }: {
   );
 }
 
-function Section({ value, title, children }: { value: string; title: string; children: ReactNode }) {
+function Section({ value, title, badge, children }: { value: string; title: string; badge?: string; children: ReactNode }) {
   return (
     <AccordionItem value={value} className="border-border max-md:data-[state=closed]:hidden">
-      <AccordionTrigger className="px-4 py-2.5 text-xs font-semibold text-primary hover:no-underline">{title}</AccordionTrigger>
+      <AccordionTrigger className="px-4 py-2.5 text-xs font-semibold text-primary hover:no-underline">
+        <span className="flex flex-1 items-center justify-between gap-2 pr-2">
+          <span>{title}</span>
+          {badge && <span className="max-w-[9rem] truncate rounded-full border border-border bg-muted px-2 py-0.5 font-mono text-[10px] font-normal text-muted-foreground">{badge}</span>}
+        </span>
+      </AccordionTrigger>
       <AccordionContent className="max-h-[calc(100dvh-28rem)] space-y-2 overflow-y-auto px-4 pb-3 max-md:max-h-[28dvh]">
         {children}
       </AccordionContent>
@@ -233,27 +238,34 @@ function Index() {
             </select>
           </label>
           <Accordion type="single" collapsible value={activeSection} onValueChange={setActiveSection}>
-          <Section value="kits" title={L("kits")}>
+          <div className="border-b border-border bg-muted/40 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-foreground max-md:hidden">{L("step1")}</div>
+          <Section value="kits" title={L("kits")} badge={KITS.find((k) => k.id === kitId)?.name ?? ""}>
             <p className="text-xs text-muted-foreground">{L("kitHint")}</p>
             <Seg value={kitCat} onChange={setKitCat}
               options={[{ v: "arduino", label: L("kitCatArduino") }, { v: "rpi", label: L("kitCatRpi") }, { v: "iot", label: L("kitCatIot") }]} />
             <div className="grid grid-cols-1 gap-2">
               {KITS.filter((k) => kitCategory(k.id) === kitCat).map((k) => (
-                <Button variant="outline" key={k.id} type="button" onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
-                  className="h-auto justify-start whitespace-normal rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
-                  ▣ {k.name}
+                <Button variant="outline" key={k.id} type="button" aria-pressed={kitId === k.id} onClick={() => { setPreset("custom"); setKitId(k.id); setP(kitParams(k)); }}
+                  className={kitId === k.id
+                    ? "h-auto justify-start whitespace-normal rounded-md border-2 border-primary bg-primary px-3 py-2 text-left text-sm font-semibold text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                    : "h-auto justify-start whitespace-normal rounded-md border border-primary/60 bg-primary/10 px-3 py-2 text-left text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"}>
+                  {kitId === k.id ? "✓" : "▣"} {k.name}
                 </Button>
               ))}
             </div>
+            {kitId && <p role="status" className="rounded-md border border-primary/40 bg-primary/10 p-2 text-xs text-foreground">
+              <strong className="text-primary">✓ {KITS.find((k) => k.id === kitId)?.name}</strong> {L("kitLoaded")}
+            </p>}
           </Section>
-          <Section value="dims" title={L("dims")}>
+          <div className="border-b border-border bg-muted/40 px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-foreground max-md:hidden">{L("step2")}</div>
+          <Section value="dims" title={L("dims")} badge={`${p.width}×${p.depth}×${p.height}`}>
             <NumField label={L("width")} value={p.width} min={30} max={300} step={1} onChange={(v) => set("width", v)} />
             <NumField label={L("depth")} value={p.depth} min={30} max={300} step={1} onChange={(v) => set("depth", v)} />
             <NumField label={L("height")} value={p.height} min={15} max={200} step={1} onChange={(v) => set("height", v)} />
             <NumField label={L("wall")} value={p.wall} min={1.6} max={4} step={0.2} onChange={(v) => set("wall", v)} />
           </Section>
 
-          <Section value="lidMode" title={L("lidMode")}>
+          <Section value="lidMode" title={L("lidMode")} badge={L(p.lidMode === "screw" ? "badgeScrew" : "badgeHinge")}>
             <Seg value={p.lidMode} onChange={(v) => {
               setGasketNotice(v === "hinge" && gasketEnabled(p));
               const k = KITS.find((x) => x.id === kitId) ?? (p.pcbEnabled ? KITS.find((x) => x.W === p.pcbWidth && x.D === p.pcbDepth) : undefined);
@@ -269,7 +281,7 @@ function Index() {
             {gasketNotice && <p role="status" className="flex items-start gap-2 text-xs text-primary"><Info className="size-4 shrink-0" />{L("gasketDisabled")}</p>}
           </Section>
 
-          <Section value="gasket" title={L("gasket")}>
+          <Section value="gasket" title={L("gasket")} badge={gasketEnabled(p) ? "TPU" : L("none")}>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={gasketEnabled(p)} disabled={!gasketAllowed(p)} onChange={(e) => { set("gasket", e.target.checked ? "tpu175" : "none"); setGasketNotice(false); }} className="accent-primary disabled:opacity-40" aria-describedby="gasket-hint" />
               <span className={!gasketAllowed(p) ? "text-muted-foreground" : "text-foreground"}>{L("gasketTpu")}</span>
@@ -281,7 +293,7 @@ function Index() {
             </>}
           </Section>
 
-          <Section value="lidDeco" title={L("lidDeco")}>
+          <Section value="lidDeco" title={L("lidDeco")} badge={p.lidText.trim() || (p.honeycomb ? "⬡" : L("none"))}>
             <label className="block space-y-1 text-sm">
               <span className="text-muted-foreground">{L("lidText")}</span>
               <input type="text" value={p.lidText} maxLength={24} onChange={(e) => set("lidText", e.target.value)}
@@ -297,14 +309,14 @@ function Index() {
             <p className="text-xs text-muted-foreground">{L("lidTextHint")}</p>
           </Section>
 
-          <Section value="screws" title={L("screws")}>
+          <Section value="screws" title={L("screws")} badge={p.screwSize}>
             <Seg value={p.screwMode} onChange={(v) => set("screwMode", v)}
               options={[{ v: "insert", label: L("insert") }, { v: "tap", label: L("tap") }]} />
             <Seg value={p.screwSize} onChange={(v) => set("screwSize", v)}
               options={[{ v: "M2.5", label: "M2.5" }, { v: "M3", label: "M3" }]} />
           </Section>
 
-          <Section value="pcb" title={L("pcb")}>
+          <Section value="pcb" title={L("pcb")} badge={p.pcbEnabled ? L("badgeOn") : L("none")}>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={p.pcbEnabled} onChange={(e) => set("pcbEnabled", e.target.checked)} className="accent-primary" />
               {L("pcb")}
@@ -327,12 +339,12 @@ function Index() {
             )}
           </Section>
 
-          <Section value="din" title={L("din")}>
+          <Section value="din" title={L("din")} badge={p.din === "none" ? L("none") : String(p.din)}>
             <Seg value={p.din} onChange={(v) => set("din", v)}
               options={[{ v: "none", label: L("none") }, { v: "integrated", label: L("integrated") }, { v: "clip", label: L("clip") }]} />
           </Section>
 
-          <Section value="cutouts" title={L("cutouts")}>
+          <Section value="cutouts" title={L("cutouts")} badge={`${p.cutouts.filter((c) => c.type !== "NONE").length} ${L("badgePorts")}`}>
             {p.cutouts.map((c) => (
               <div key={c.id} className="space-y-2 rounded-md border border-border p-2">
                 <div className="flex gap-2">
@@ -358,7 +370,7 @@ function Index() {
             </button>
           </Section>
 
-          <Section value="dividers" title={L("dividers")}>
+          <Section value="dividers" title={L("dividers")} badge={String((p.dividers ?? []).length)}>
             <p className="text-xs text-muted-foreground">{L("dividerHint")}</p>
             <Button variant="outline" type="button" className="w-full text-sm"
               onClick={() => {
