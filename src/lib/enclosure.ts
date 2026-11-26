@@ -32,7 +32,7 @@ export type LidMode = "screw" | "hinge";
 export type DinMode = "none" | "integrated" | "clip";
 export type Face = "front" | "back" | "left" | "right";
 export type CutoutType = "PG7" | "PG9" | "PG11" | "USBC" | "DC" | "RJ45" | "VENT" | "NONE"
-  | "USBB" | "BARREL" | "MICROUSB" | "MICROHDMI" | "AUDIO" | "USBA2";
+  | "USBB" | "BARREL" | "MICROUSB" | "MICROHDMI" | "AUDIO" | "USBA2" | "MINIUSB" | "MINIHDMI";
 
 export interface Cutout {
   id: string;
@@ -133,6 +133,8 @@ export const CUTOUT_SPECS: Record<CutoutType, { kind: "circle" | "rect" | "vent"
   MICROHDMI: { kind: "rect", w: 7.8, h: 4.2 },
   AUDIO: { kind: "circle", w: 6.8, h: 6.8 },
   USBA2: { kind: "rect", w: 14, h: 16.6 },
+  MINIUSB: { kind: "rect", w: 8.8, h: 4.8 },
+  MINIHDMI: { kind: "rect", w: 11.8, h: 4.2 },
 };
 
 /** Conta yalnızca tam kapalı veya sadece PG rakorlu kutularda anlamlıdır. */

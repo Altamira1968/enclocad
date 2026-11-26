@@ -87,4 +87,51 @@ export const KITS: KitSpec[] = [
     m: { l: 1, r: 3, f: 9, b: 9 }, wall: 2, height: 24, standoff: 4,
     lidMode: "screw", screwMode: "tap", lidText: "ESP32",
   },
+  {
+    id: "mega", name: "Arduino Mega 2560", W: 101.6, D: 53.3, inset: 3.5,
+    holes: [[14, 2.5], [15.3, 50.7], [66.1, 7.6], [66.1, 35.5], [90.2, 50.7], [96.5, 2.5]],
+    ports: [
+      { edge: "left", pos: 37.8, type: "USBB", z: 5.5 },
+      { edge: "left", pos: 7.8, type: "BARREL", z: 5.5 },
+    ],
+    m: { l: 6.5, r: 3, f: 9, b: 9 }, wall: 2.4, height: 34, standoff: 5,
+    lidMode: "screw", screwMode: "insert", lidText: "ARDUINO MEGA",
+  },
+  {
+    id: "nano", name: "Arduino Nano", W: 45, D: 18, inset: 1.5,
+    ports: [{ edge: "left", pos: 9, type: "MINIUSB", z: 2 }],
+    m: { l: 1, r: 3, f: 9, b: 9 }, wall: 2, height: 22, standoff: 4,
+    lidMode: "hinge", screwMode: "tap", lidText: "NANO",
+  },
+  {
+    id: "rpi5", name: "Raspberry Pi 5", W: 85, D: 56, inset: 3.5,
+    holes: [[3.5, 3.5], [61.5, 3.5], [3.5, 52.5], [61.5, 52.5]],
+    ports: [
+      { edge: "back", pos: 11.2, type: "USBC", z: 1.6 },
+      { edge: "back", pos: 25.8, type: "MICROHDMI", z: 1.5 },
+      { edge: "back", pos: 39.2, type: "MICROHDMI", z: 1.5 },
+      { edge: "right", pos: 9, type: "USBA2", z: 8 },
+      { edge: "right", pos: 27, type: "USBA2", z: 8 },
+      { edge: "right", pos: 45.75, type: "RJ45", z: 6.8 },
+    ],
+    m: { l: 3, r: 2.5, f: 5, b: 1 }, wall: 2.4, height: 40, standoff: 5,
+    lidMode: "hinge", screwMode: "tap", lidText: "RPI 5",
+  },
+  {
+    id: "rpizero", name: "Raspberry Pi Zero 2 W", W: 65, D: 30, inset: 3.5,
+    holes: [[3.5, 3.5], [61.5, 3.5], [3.5, 26.5], [61.5, 26.5]],
+    ports: [
+      { edge: "back", pos: 12.4, type: "MINIHDMI", z: 1.5 },
+      { edge: "back", pos: 41.4, type: "MICROUSB", z: 1.5 },
+      { edge: "back", pos: 54, type: "MICROUSB", z: 1.5 },
+    ],
+    m: { l: 2, r: 2, f: 4, b: 1 }, wall: 2, height: 22, standoff: 4,
+    lidMode: "hinge", screwMode: "tap", lidText: "PI ZERO",
+  },
+  {
+    id: "d1mini", name: "Wemos D1 Mini (ESP8266)", W: 34.2, D: 25.6, inset: 2,
+    ports: [{ edge: "left", pos: 12.8, type: "MICROUSB", z: 1.8 }],
+    m: { l: 1, r: 3, f: 6, b: 6 }, wall: 2, height: 22, standoff: 4,
+    lidMode: "hinge", screwMode: "tap", lidText: "D1 MINI",
+  },
 ];

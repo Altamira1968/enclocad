@@ -71,7 +71,7 @@ function Section({ value, title, children }: { value: string; title: string; chi
 }
 const OPTION_SECTIONS: Key[] = ["kits", "dims", "lidMode", "gasket", "lidDeco", "screws", "pcb", "din", "cutouts", "dividers"];
 
-const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT", "USBB", "BARREL", "MICROUSB", "MICROHDMI", "AUDIO", "USBA2"];
+const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT", "USBB", "BARREL", "MICROUSB", "MICROHDMI", "AUDIO", "USBA2", "MINIUSB", "MINIHDMI"];
 const FACES: Face[] = ["front", "back", "left", "right"];
 
 function Index() {
