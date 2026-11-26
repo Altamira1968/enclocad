@@ -39,8 +39,11 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "EncloCAD — Parametric Electronics Enclosure Designer" },
       { property: "og:description", content: "Enter your dimensions, add PG gland and connector cutouts, and download STL files ready for your 3D printer." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://enclocad.com/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://enclocad.com/" }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify({"@context": "https://schema.org", "@type": "WebApplication", "name": "EncloCAD", "url": "https://enclocad.com/", "applicationCategory": "DesignApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "featureList": ["Parametric enclosure design", "STL export", "DIN rail mount", "Hinged snap-fit lid", "TPU gasket channel"]}) }],
   }),
   component: Landing,
 });

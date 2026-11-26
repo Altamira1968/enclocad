@@ -33,8 +33,11 @@ export const Route = createFileRoute("/editor")({
       { property: "og:title", content: "EncloCAD Editor — Design Your Enclosure" },
       { property: "og:description", content: "Enter dimensions, add cutouts and DIN rail mounting, then download print-ready STL files." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://enclocad.com/editor" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://enclocad.com/editor" }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify({"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "EncloCAD", "url": "https://enclocad.com/editor", "applicationCategory": "DesignApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "featureList": ["Parametric enclosure design", "STL export", "DIN rail mount", "Hinged snap-fit lid", "TPU gasket channel"]}) }],
   }),
   component: Index,
 });

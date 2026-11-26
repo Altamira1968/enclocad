@@ -17,8 +17,12 @@ export const Route = createFileRoute("/gallery")({
     { property: "og:title", content: "EncloCAD Gallery — Ready-Made Electronics Enclosures" },
     { property: "og:description", content: "Explore enclosure examples in 3D and open any design in the EncloCAD editor." },
     { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://enclocad.com/gallery" },
     { name: "twitter:card", content: "summary_large_image" },
-  ] }),
+  ],
+  links: [{ rel: "canonical", href: "https://enclocad.com/gallery" }],
+  scripts: [{ type: "application/ld+json", children: JSON.stringify({"@context":"https://schema.org","@type":"CollectionPage","name":"EncloCAD Gallery","url":"https://enclocad.com/gallery"}) }],
+  }),
   component: Gallery,
 });
 
