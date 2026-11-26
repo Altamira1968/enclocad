@@ -87,7 +87,7 @@ function Index() {
   const [kitCat, setKitCat] = useState<KitCategory>("arduino");
   const [searchOpen, setSearchOpen] = useState(false);
   const L = (k: Key) => tr(lang, k);
-  const [p, setP] = useState<EnclosureParams>(DEFAULT_PARAMS);
+  const [p, setP] = useState<EnclosureParams>({ ...DEFAULT_PARAMS, pcbEnabled: false, cutouts: [] });
   const [explode, setExplode] = useState(25);
   const [mode, setMode] = useState<ViewMode>("all");
   const [ghost, setGhost] = useState(false);
