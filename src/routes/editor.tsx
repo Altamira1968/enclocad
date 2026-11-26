@@ -13,6 +13,9 @@ import {
 } from "@/lib/enclosure";
 import { t as tr, type Lang, type Key } from "@/lib/i18n";
 import type { ViewMode } from "@/components/Viewer";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Download, ChevronDown, FileBox, Archive } from "lucide-react";
 
 const Viewer = lazy(() => import("@/components/Viewer"));
 import PartSearch from "@/components/PartSearch";
@@ -174,31 +177,43 @@ function Index() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <header className="flex items-center justify-between border-b border-border px-5 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
         <div className="flex items-baseline gap-3">
           <Link to="/" className="font-mono text-xl font-bold tracking-tight hover:opacity-80">
             Enclo<span className="text-primary">CAD</span>
           </Link>
-          <p className="hidden text-sm text-muted-foreground md:block">{L("tagline")}</p>
+          <p className="hidden text-sm text-muted-foreground xl:block">{L("tagline")}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={() => setSearchOpen(true)}
             className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary hover:text-primary">
             🔍 {L("psOpen")}
           </button>
           <Seg value={lang} onChange={(v) => { setLang(v); localStorage.setItem("enclocad-lang", v); }}
             options={[{ v: "tr", label: "TR" }, { v: "en", label: "EN" }]} />
-          <span className="hidden text-xs text-muted-foreground lg:inline">{L("stl")}:</span>
-          {(["base", "lid", ...(geo?.clip ? ["clip"] : [])] as Part[]).map((part) => (
-            <button key={part} type="button" onClick={() => downloadPart(part)} disabled={!geo}
-              className="rounded-md border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-50">
-              {L(part === "base" ? "dlBase" : part === "lid" ? "dlLid" : "dlClip")}
-            </button>
-          ))}
-          <button type="button" onClick={download} disabled={!geo}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50">
-            {L("download")}
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button disabled={!geo} className="h-10 px-4 text-base font-semibold">
+                <Download aria-hidden="true" />
+                {L("stl")}
+                <ChevronDown aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {(["base", "lid", ...(geo?.clip ? ["clip"] : [])] as Part[]).map((part) => (
+                <DropdownMenuItem key={part} onSelect={() => downloadPart(part)} className="cursor-pointer py-3">
+                  <FileBox aria-hidden="true" />
+                  {L(part === "base" ? "dlBase" : part === "lid" ? "dlLid" : "dlClip")}
+                  <span className="ml-auto font-mono text-xs text-muted-foreground">.stl</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => { void download(); }} className="cursor-pointer py-3 font-semibold">
+                <Archive aria-hidden="true" />
+                {L("download")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button type="button" onClick={share}
             className={copied
               ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400"

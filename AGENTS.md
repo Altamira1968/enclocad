@@ -32,3 +32,4 @@ use the editor.
 - 3D enclosure geometry is built client-side in src/lib/enclosure.ts (three + three-bvh-csg) with no backend; keeps hosting cost near zero.
 - UI strings live in src/lib/i18n.ts (TR/EN dictionary); every new label needs both languages.
 - Spare-part search proxies the public Printables GraphQL API through a server function (no key, avoids CORS).
+- Editor exports use the shared Button and DropdownMenu controls with existing client-side export handlers; keeps individual STL and ZIP downloads accessible in one compact menu.

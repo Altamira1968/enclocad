@@ -82,7 +82,7 @@ const dict = {
   how3: { tr: "STL indirin", en: "Download STL" },
   faqTitle: { tr: "Sık sorulan sorular", en: "Frequently asked questions" },
   faq1Q: { tr: "Ücretli mi?", en: "Is it free?" },
-  faq1A: { tr: "Evet, tamamen ücretsiz. Hesap açmadan tasarlayıp STL indirebilirsiniz.", en: "Yes, completely free. Design and download STL files without an account." },
+  faq1A: { tr: "Hayır, tamamen ücretsiz. Hesap açmadan tasarlayıp STL indirebilirsiniz.", en: "Yes, completely free. Design and download STL files without an account." },
   faq2Q: { tr: "Hangi yazıcılarla uyumlu?", en: "Which printers is it compatible with?" },
   faq2A: { tr: "Çıktı standart STL olduğu için FDM ve reçine (SLA) dahil tüm 3B yazıcılarla uyumludur.", en: "Output is standard STL, so it works with all 3D printers including FDM and resin (SLA)." },
   faq3Q: { tr: "Tasarımım nerede saklanıyor?", en: "Where is my design stored?" },
