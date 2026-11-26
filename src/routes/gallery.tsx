@@ -4,6 +4,7 @@ import { ArrowUpRight, Box, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { filterGallery, GALLERY_IMAGES, type GalleryFilter } from "@/lib/gallery";
 import { t, type Lang, type Key } from "@/lib/i18n";
+import { caseSlugFor } from "@/lib/cases";
 
 const FILTERS: { value: GalleryFilter; label: Key }[] = [
   { value: "all", label: "all" }, { value: "hinge", label: "hinged" },
@@ -74,7 +75,8 @@ function Gallery() {
                 <span>{L(model.params.lidMode === "hinge" ? "hinged" : "screwed")}</span>
                 {model.params.din !== "none" && <span className="border-l border-border pl-2">35 mm DIN</span>}
               </div>
-              <h2 className="text-lg font-semibold leading-snug">{L(model.title)}</h2>
+              <h2 className="text-lg font-semibold leading-snug">{(() => { const slug = caseSlugFor(model.id);
+                return slug ? <Link to="/cases/$slug" params={{ slug }} className="hover:text-primary">{L(model.title)}</Link> : L(model.title); })()}</h2>
               <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{L(model.description)}</p>
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-xs text-muted-foreground">
                 <span>{model.params.width} × {model.params.depth} × {model.params.height} mm</span>

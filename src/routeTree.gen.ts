@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as CasesSlugRouteImport } from './routes/cases.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const GalleryRoute = GalleryRouteImport.update({
   path: '/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CasesSlugRoute = CasesSlugRouteImport.update({
+  id: '/cases/$slug',
+  path: '/cases/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/gallery': typeof GalleryRoute
+  '/cases/$slug': typeof CasesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/gallery': typeof GalleryRoute
+  '/cases/$slug': typeof CasesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/gallery': typeof GalleryRoute
+  '/cases/$slug': typeof CasesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/editor' | '/gallery'
+  fullPaths: '/' | '/editor' | '/gallery' | '/cases/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/gallery'
-  id: '__root__' | '/' | '/editor' | '/gallery'
+  to: '/' | '/editor' | '/gallery' | '/cases/$slug'
+  id: '__root__' | '/' | '/editor' | '/gallery' | '/cases/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EditorRoute: typeof EditorRoute
   GalleryRoute: typeof GalleryRoute
+  CasesSlugRoute: typeof CasesSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cases/$slug': {
+      id: '/cases/$slug'
+      path: '/cases/$slug'
+      fullPath: '/cases/$slug'
+      preLoaderRoute: typeof CasesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EditorRoute: EditorRoute,
   GalleryRoute: GalleryRoute,
+  CasesSlugRoute: CasesSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
