@@ -39,3 +39,4 @@ use the editor.
 - The editor uses a single-open options accordion and a mobile section selector; section names remain accessible without scrolling the entire controls list.
 - Numeric editor fields share NumField with a local editing draft and blur/Enter validation; partial typing never forces an invalid intermediate value into the geometry.
 - Enclosure interior compartments use optional dividers in EnclosureParams, unioned into the base before cutouts; keeps custom layouts like the pipe case parametric.
+- Optional separate inner lids use EnclosureParams.innerLid and render/export as their own part; keeps sub-compartment covers printable separately.

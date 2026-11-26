@@ -9,7 +9,7 @@ import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
 import JSZip from "jszip";
 import {
-  DEFAULT_PARAMS, PCB_PRESETS, LID_THICKNESS, buildBase, buildLid, buildClip,
+  DEFAULT_PARAMS, PCB_PRESETS, LID_THICKNESS, buildBase, buildLid, buildClip, buildInnerLid,
   type EnclosureParams, type Cutout, type CutoutType, type Face,
   gasketEnabled, gasketRim, gasketAllowed, hasOpenCutouts, normalizeGasket,
 } from "@/lib/enclosure";
@@ -114,12 +114,12 @@ function Index() {
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
   const dp = useDeferredValue(p);
-  type Geo = { base: THREE.BufferGeometry; lid: THREE.BufferGeometry; clip: THREE.BufferGeometry | null };
+  type Geo = { base: THREE.BufferGeometry; lid: THREE.BufferGeometry; clip: THREE.BufferGeometry | null; inner: THREE.BufferGeometry | null };
   const [geo, setGeo] = useState<Geo | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     try {
-      setGeo({ base: buildBase(dp), lid: buildLid(dp), clip: dp.din === "clip" ? buildClip(dp) : null });
+      setGeo({ base: buildBase(dp), lid: buildLid(dp), clip: dp.din === "clip" ? buildClip(dp) : null, inner: buildInnerLid(dp) });
       setFailed(false);
     } catch (e) {
       console.error(e);
@@ -130,12 +130,12 @@ function Index() {
   const updateCut = (id: string, patch: Partial<Cutout>) =>
     set("cutouts", p.cutouts.map((c) => (c.id === id ? { ...c, ...patch } : c)));
 
-  type Part = "base" | "lid" | "clip";
-  const names = lang === "tr" ? { base: "Govde", lid: "Kapak", clip: "DIN_Klipsi" } : { base: "Base", lid: "Lid", clip: "DIN_Clip" };
+  type Part = "base" | "lid" | "clip" | "inner";
+  const names = lang === "tr" ? { base: "Govde", lid: "Kapak", clip: "DIN_Klipsi", inner: "Ic_Kapak" } : { base: "Base", lid: "Lid", clip: "DIN_Clip", inner: "Inner_Lid" };
   /** Baskıya hazır: Z yukarı, en geniş düz yüz tablada, tabla merkezinde */
   const printReady = (part: Part, g: THREE.BufferGeometry) => {
     const c = g.clone();
-    c.rotateX(part === "base" ? Math.PI / 2 : -Math.PI / 2);
+    c.rotateX(part === "base" || part === "inner" ? Math.PI / 2 : -Math.PI / 2);
     c.computeBoundingBox();
     const bb = c.boundingBox!;
     c.translate(-(bb.min.x + bb.max.x) / 2, -(bb.min.y + bb.max.y) / 2, -bb.min.z);
@@ -161,7 +161,7 @@ function Index() {
   const download = async () => {
     if (!geo) return;
     const zip = new JSZip();
-    for (const part of ["base", "lid", "clip"] as Part[]) {
+    for (const part of ["base", "lid", "clip", "inner"] as Part[]) {
       const buf = stlOf(part);
       if (buf) zip.file(`${names[part]}.stl`, buf);
     }
@@ -196,10 +196,10 @@ function Index() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {(["base", "lid", ...(geo?.clip ? ["clip"] : [])] as Part[]).map((part) => (
+              {(["base", "lid", ...(geo?.clip ? ["clip"] : []), ...(geo?.inner ? ["inner"] : [])] as Part[]).map((part) => (
                 <DropdownMenuItem key={part} onSelect={() => downloadPart(part)} className="cursor-pointer py-3">
                   <FileBox aria-hidden="true" />
-                  {L(part === "base" ? "dlBase" : part === "lid" ? "dlLid" : "dlClip")}
+                  {L(part === "base" ? "dlBase" : part === "lid" ? "dlLid" : part === "inner" ? "dlInner" : "dlClip")}
                   <span className="ml-auto font-mono text-xs text-muted-foreground">.stl</span>
                 </DropdownMenuItem>
               ))}
@@ -353,7 +353,7 @@ function Index() {
         <main className="relative min-h-0 flex-1 bg-viewport">
           <ClientOnly fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
             <Suspense fallback={<div className="p-6 text-muted-foreground">{L("computing")}</div>}>
-              <Viewer base={geo?.base ?? null} lid={geo?.lid ?? null} clip={geo?.clip ?? null}
+              <Viewer base={geo?.base ?? null} lid={geo?.lid ?? null} clip={geo?.clip ?? null} inner={geo?.inner ?? null}
                 baseHeight={p.height - LID_THICKNESS(p)} size={size} explode={explode} mode={mode} ghost={ghost} />
             </Suspense>
           </ClientOnly>

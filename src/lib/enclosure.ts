@@ -1,3 +1,4 @@
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import * as THREE from "three";
 import { Brush, Evaluator, ADDITION, SUBTRACTION } from "three-bvh-csg";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
@@ -74,6 +75,8 @@ export interface EnclosureParams {
   hexSize: number;
   /** İç bölme duvarları: merkez (x,z), boyut (w,d), tabandan yükseklik h (mm) */
   dividers?: { x: number; z: number; w: number; d: number; h: number }[];
+  /** Ayrı basılan iç bölme kapağı; y = taban üstünden oturma yüksekliği */
+  innerLid?: { x: number; z: number; w: number; d: number; y: number };
 }
 
 export const DEFAULT_PARAMS: EnclosureParams = {
@@ -471,4 +474,14 @@ export function buildClip(p: EnclosureParams): THREE.BufferGeometry {
   const cl = clearanceDiameter(p.screwSize);
   for (const x of [-12, 12]) b = op(b, brush(cyl(cl, 10), x, 0, 0), SUBTRACTION);
   return b.geometry;
+}
+
+/** Tutamaçlı iç kapak (ör. tütün haznesi); gövde koordinatlarında, oturduğu yerde */
+export function buildInnerLid(p: EnclosureParams): THREE.BufferGeometry | null {
+  const l = p.innerLid;
+  if (!l) return null;
+  const y0 = p.wall + l.y;
+  const plate = new THREE.BoxGeometry(l.w, 3, l.d).translate(l.x, y0 + 1.5, l.z);
+  const grip = new THREE.BoxGeometry(Math.min(30, l.w * 0.5), 5, 6).translate(l.x, y0 + 5.5, l.z);
+  return mergeGeometries([plate.toNonIndexed(), grip.toNonIndexed()])!;
 }

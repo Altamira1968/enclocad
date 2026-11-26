@@ -59,14 +59,15 @@ export const GALLERY_MODELS: GalleryModel[] = [
     params: { ...DEFAULT_PARAMS, width: 186, depth: 146, height: 48, wall: 2.4, lidMode: "hinge", pcbEnabled: false,
       cutouts: [], lidText: "PIPE CASE", lidTextSize: 10,
       dividers: [
-        { x: 0, z: 10.4, w: 181.2, d: 2, h: 30 },
+        { x: 0, z: 10.4, w: 181.2, d: 2, h: 43 },
         { x: 21.6, z: 41, w: 2, d: 59.2, h: 43 },
-        // tütün haznesi iç kapağı için 22 mm yükseklikte oturma basamağı
-        { x: 56.6, z: 69.1, w: 68, d: 3, h: 22 },
-        { x: 56.6, z: 12.9, w: 68, d: 3, h: 22 },
-        { x: 89.1, z: 41, w: 3, d: 53.2, h: 22 },
-        { x: 24.1, z: 41, w: 3, d: 53.2, h: 22 },
-      ] } },
+        // tütün haznesi: 34 mm yüksek duvarlar, üstüne tutamaçlı iç kapak oturur
+        { x: 56.6, z: 69.1, w: 68, d: 3, h: 34 },
+        { x: 56.6, z: 12.9, w: 68, d: 3, h: 34 },
+        { x: 89.1, z: 41, w: 3, d: 53.2, h: 34 },
+        { x: 24.1, z: 41, w: 3, d: 53.2, h: 34 },
+      ],
+      innerLid: { x: 56.6, z: 41, w: 67.4, d: 58.6, y: 34 } } },
 ];
 
 export function filterGallery(filter: GalleryFilter): GalleryModel[] {

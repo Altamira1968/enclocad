@@ -20,3 +20,16 @@ describe("Example gallery", () => {
     expect(filterGallery("din").map((m) => m.id)).toEqual(["gallery-rpi4-din", "gallery-relay"]);
   });
 });
+import { buildInnerLid } from "@/lib/enclosure";
+describe("Pipe case", () => {
+  const m = GALLERY_MODELS.find((g) => g.id === "gallery-pipe-case")!;
+  it("long divider spans the full inner height", () => {
+    expect(m.params.dividers?.[0]?.h).toBe(43);
+  });
+  it("has a separate tobacco inner lid seated on 34 mm walls", () => {
+    expect(m.params.innerLid?.y).toBe(34);
+    const g = buildInnerLid(m.params)!;
+    g.computeBoundingBox();
+    expect(g.boundingBox!.max.y).toBeLessThanOrEqual(m.params.height - m.params.wall - 1);
+  });
+});

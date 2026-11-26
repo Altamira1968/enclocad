@@ -7,6 +7,7 @@ interface Props {
   base: THREE.BufferGeometry | null;
   lid: THREE.BufferGeometry | null;
   clip: THREE.BufferGeometry | null;
+  inner?: THREE.BufferGeometry | null;
   baseHeight: number;
   size: number;
   explode: number;
@@ -26,7 +27,7 @@ export default function Viewer(props: Props) {
   markersRef.current = props.markers ?? [];
   const [active, setActive] = useState<string | null>(null);
   const state = useRef<{
-    base: THREE.Mesh; lid: THREE.Mesh; clip: THREE.Mesh;
+    base: THREE.Mesh; lid: THREE.Mesh; clip: THREE.Mesh; inner: THREE.Mesh;
     camera: THREE.PerspectiveCamera; controls: OrbitControls; lastSize: number;
   } | null>(null);
 
@@ -55,8 +56,9 @@ export default function Viewer(props: Props) {
     const base = new THREE.Mesh(undefined, mat("#d9dde2"));
     const lid = new THREE.Mesh(undefined, mat("#f2a93b"));
     const clip = new THREE.Mesh(undefined, mat("#7a8794"));
-    scene.add(base, lid, clip);
-    state.current = { base, lid, clip, camera, controls, lastSize: 0 };
+    const inner = new THREE.Mesh(undefined, mat("#5fb3a8"));
+    scene.add(base, lid, clip, inner);
+    state.current = { base, lid, clip, inner, camera, controls, lastSize: 0 };
 
     const resize = () => {
       const w = el.clientWidth, h = el.clientHeight;
@@ -139,6 +141,9 @@ export default function Viewer(props: Props) {
     const minY = props.base?.boundingBox?.min.y ?? 0;
     const lift = props.clip ? 12 + explode * 0.6 : Math.max(0, -minY);
     base.position.y = lift;
+    if (props.inner) s.inner.geometry = props.inner;
+    s.inner.visible = !!props.inner && mode !== "lid";
+    s.inner.position.y = lift + explode * 0.5;
     lid.position.y += lift;
     clip.position.y += lift;
     if (Math.abs(size - s.lastSize) > size * 0.3) {

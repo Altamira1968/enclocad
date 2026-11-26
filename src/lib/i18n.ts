@@ -77,6 +77,7 @@ const dict = {
   dlBase: { tr: "Gövde", en: "Base" },
   dlLid: { tr: "Kapak", en: "Lid" },
   dlClip: { tr: "Klips", en: "Clip" },
+  dlInner: { tr: "İç kapak", en: "Inner lid" },
   stl: { tr: "STL indir", en: "Download STL" },
   baseStl: { tr: "Gövde.stl", en: "Base.stl" },
   lidStl: { tr: "Kapak.stl", en: "Lid.stl" },
