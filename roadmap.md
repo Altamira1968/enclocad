@@ -10,3 +10,4 @@
 - [x] Çıtçıtlı kapakta contayı kapat ve gerekçesini göster.
 - [x] Sol seçenekleri tek açık bölümlü kompakt listeye dönüştür.
 - [x] Geometri, indirme ve farklı ekran boyutlarını doğrula (13 test; masaüstü ve mobil tarayıcı akışı).
+- [x] Editöre "İç bölmeler" bölümü ekle: 2×2 ızgara preset'i, serbest bölme duvarı ekleme/silme, milimetrik konum/boy ayarı (3 test; tarayıcıda doğrulandı).

@@ -69,7 +69,7 @@ function Section({ value, title, children }: { value: string; title: string; chi
     </AccordionItem>
   );
 }
-const OPTION_SECTIONS: Key[] = ["kits", "dims", "lidMode", "gasket", "lidDeco", "screws", "pcb", "din", "cutouts"];
+const OPTION_SECTIONS: Key[] = ["kits", "dims", "lidMode", "gasket", "lidDeco", "screws", "pcb", "din", "cutouts", "dividers"];
 
 const CUT_TYPES: CutoutType[] = ["NONE", "PG7", "PG9", "PG11", "USBC", "DC", "RJ45", "VENT", "USBB", "BARREL", "MICROUSB", "MICROHDMI", "AUDIO", "USBA2"];
 const FACES: Face[] = ["front", "back", "left", "right"];
@@ -348,6 +348,39 @@ function Index() {
               onClick={() => set("cutouts", [...p.cutouts, { id: String(Date.now()), face: "back", type: "USBC", u: 0, v: 0 }])}
               className="w-full rounded-md border border-dashed border-primary py-1.5 text-sm text-primary hover:bg-primary/10">
               + {L("add")}
+            </button>
+          </Section>
+
+          <Section value="dividers" title={L("dividers")}>
+            <p className="text-xs text-muted-foreground">{L("dividerHint")}</p>
+            <Button variant="outline" type="button" className="w-full text-sm"
+              onClick={() => {
+                const iw = p.width - 2 * p.wall, id = p.depth - 2 * p.wall, ih = p.height - LID_THICKNESS(p);
+                set("dividers", [
+                  { x: 0, z: 0, w: iw, d: 2, h: ih },
+                  { x: 0, z: 0, w: 2, d: id, h: ih },
+                ]);
+              }}>
+              ▦ {L("dividerGrid")}
+            </Button>
+            {(p.dividers ?? []).map((d, i) => (
+              <div key={i} className="space-y-2 rounded-md border border-border p-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <button type="button" aria-label="Sil" onClick={() => set("dividers", (p.dividers ?? []).filter((_, j) => j !== i))}
+                    className="px-2 text-destructive">×</button>
+                </div>
+                <NumField label={L("dX")} value={d.x} min={-150} max={150} step={1} onChange={(v) => set("dividers", (p.dividers ?? []).map((x, j) => (j === i ? { ...x, x: v } : x)))} />
+                <NumField label={L("dZ")} value={d.z} min={-150} max={150} step={1} onChange={(v) => set("dividers", (p.dividers ?? []).map((x, j) => (j === i ? { ...x, z: v } : x)))} />
+                <NumField label={L("dW")} value={d.w} min={2} max={300} step={1} onChange={(v) => set("dividers", (p.dividers ?? []).map((x, j) => (j === i ? { ...x, w: v } : x)))} />
+                <NumField label={L("dD")} value={d.d} min={2} max={300} step={1} onChange={(v) => set("dividers", (p.dividers ?? []).map((x, j) => (j === i ? { ...x, d: v } : x)))} />
+                <NumField label={L("dH")} value={d.h} min={2} max={Math.max(2, p.height - LID_THICKNESS(p))} step={1} onChange={(v) => set("dividers", (p.dividers ?? []).map((x, j) => (j === i ? { ...x, h: v } : x)))} />
+              </div>
+            ))}
+            <button type="button"
+              onClick={() => set("dividers", [...(p.dividers ?? []), { x: 0, z: 0, w: Math.max(2, p.width - 2 * p.wall), d: 2, h: Math.max(2, p.height - LID_THICKNESS(p)) }])}
+              className="w-full rounded-md border border-dashed border-primary py-1.5 text-sm text-primary hover:bg-primary/10">
+              + {L("addDivider")}
             </button>
           </Section>
           </Accordion>
