@@ -4,7 +4,7 @@ import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import { TEMPLATES } from "@/lib/templates";
 import { GALLERY_MODELS } from "@/lib/gallery";
 import { KITS, kitParams, kitCategory, type KitCategory } from "@/lib/kits";
-import { lazy, Suspense, useDeferredValue, useEffect, useState, type ReactNode } from "react";
+import { lazy, Suspense, useDeferredValue, useEffect, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { STLExporter } from "three/examples/jsm/exporters/STLExporter.js";
 import JSZip from "jszip";
@@ -93,6 +93,7 @@ function Index() {
   const [ghost, setGhost] = useState(false);
   const [preset, setPreset] = useState("custom");
   const [kitId, setKitId] = useState<string | null>(null);
+  const modeMem = useRef<Partial<Record<"custom" | "kits", { p: EnclosureParams; kitId: string | null }>>>({});
   const [copied, setCopied] = useState(false);
   const [hashReady, setHashReady] = useState(false);
   useEffect(() => {
@@ -235,7 +236,7 @@ function Index() {
           <div role="tablist" aria-label={L("options")} className="grid grid-cols-2 gap-1 border-b border-border p-2">
             {(["custom", "kits"] as const).map((m) => (
               <Button key={m} type="button" role="tab" aria-selected={panelMode === m} variant={panelMode === m ? "default" : "ghost"} size="sm"
-                onClick={() => { setPanelMode(m); setActiveSection(m === "kits" ? "kits" : "dims"); }}>
+                onClick={() => { if (m !== panelMode) { modeMem.current[panelMode] = { p, kitId }; const next = modeMem.current[m] ?? { p: { ...DEFAULT_PARAMS, pcbEnabled: false, cutouts: [] }, kitId: null }; setP(next.p); setKitId(next.kitId); setPreset("custom"); } setPanelMode(m); setActiveSection(m === "kits" ? "kits" : "dims"); }}>
                 {m === "custom" ? `📐 ${L("tabCustom")}` : `⚡ ${L("tabKits")}`}
               </Button>
             ))}
